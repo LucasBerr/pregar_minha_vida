@@ -442,7 +442,7 @@
     let auth = null;
     let currentUser = null;
 
-    // Inicialização das variáveis de estado (local reactive replication)
+    // Inicialização das variáveis de estado
     let kpis = [];
     let calendarEvents = [];
     let currentSelectedDay = "Segunda";
@@ -464,8 +464,8 @@
 
     async function initFirebaseStorage() {
         if (!firebaseConfig) {
-            console.log("Variáveis de ambiente de nuvem ausentes. Utilizando fallback local resiliente.");
-            setFallbackData();
+            console.log("Variáveis de ambiente de nuvem ausentes. Utilizando armazenamento local persistente (LocalStorage).");
+            setLocalOrFallbackData();
             return;
         }
 
@@ -474,7 +474,6 @@
             db = getFirestore(app);
             auth = getAuth(app);
 
-            // Tentar login com Custom Token se fornecido, senão Anonymous (Regra de Segurança 3)
             const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
             if (initialAuthToken) {
                 await signInWithCustomToken(auth, initialAuthToken);
@@ -489,13 +488,13 @@
                     document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Conectado`;
                     syncDataFromCloud();
                 } else {
-                    setFallbackData();
+                    setLocalOrFallbackData();
                 }
             });
 
         } catch (err) {
             console.error("Falha ao configurar sincronização remota:", err);
-            setFallbackData();
+            setLocalOrFallbackData();
         }
     }
 
@@ -505,53 +504,55 @@
         const kpiColRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'kpis');
         const evColRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'events');
 
-        // Escuta em tempo real dos KPIs do Usuário
         onSnapshot(kpiColRef, (snapshot) => {
             if (snapshot.empty) {
-                // Popular dados padrão caso a nuvem esteja vazia para este novo usuário
                 DEFAULT_KPIS.forEach(async (kpi) => {
                     await setDoc(doc(kpiColRef, kpi.id), kpi);
                 });
             } else {
                 kpis = [];
-                snapshot.forEach(doc => {
-                    kpis.push({ id: doc.id, ...doc.data() });
-                });
-                recalculateMetrics();
-                renderKPIs();
-                renderValidationCards();
+                snapshot.forEach(doc => { kpis.push({ id: doc.id, ...doc.data() }); });
+                updateUI();
             }
-        }, (error) => {
-            console.error("Erro ao sincronizar KPIs da nuvem:", error);
         });
 
-        // Escuta em tempo real dos Eventos do Usuário
         onSnapshot(evColRef, (snapshot) => {
             if (snapshot.empty) {
-                // Popular dados padrão caso a nuvem esteja vazia para este novo usuário
                 DEFAULT_EVENTS.forEach(async (ev) => {
                     await setDoc(doc(evColRef, ev.id), ev);
                 });
             } else {
                 calendarEvents = [];
-                snapshot.forEach(doc => {
-                    calendarEvents.push({ id: doc.id, ...doc.data() });
-                });
-                recalculateMetrics();
-                renderKPIs();
-                renderValidationCards();
+                snapshot.forEach(doc => { calendarEvents.push({ id: doc.id, ...doc.data() }); });
+                updateUI();
             }
-        }, (error) => {
-            console.error("Erro ao sincronizar Eventos da nuvem:", error);
         });
     }
 
-    // Fallback local se o Firestore não estiver disponível
-    function setFallbackData() {
-        kpis = [...DEFAULT_KPIS];
-        calendarEvents = [...DEFAULT_EVENTS];
-        document.getElementById('sync-user-id').innerText = "Simulador Offline (Em Memória)";
-        document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Offline`;
+    // Gerencia o estado LocalStorage de forma limpa
+    function setLocalOrFallbackData() {
+        const localKPIs = localStorage.getItem('synclife_kpis');
+        const localEvents = localStorage.getItem('synclife_events');
+
+        kpis = localKPIs ? JSON.parse(localKPIs) : [...DEFAULT_KPIS];
+        calendarEvents = localEvents ? JSON.parse(localEvents) : [...DEFAULT_EVENTS];
+
+        if (!localKPIs) localStorage.setItem('synclife_kpis', JSON.stringify(kpis));
+        if (!localEvents) localStorage.setItem('synclife_events', JSON.stringify(calendarEvents));
+
+        document.getElementById('sync-user-id').innerText = "LocalStorage Ativo (Dados Salvos)";
+        document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-cyan-500"></span> Armazenamento Local`;
+        updateUI();
+    }
+
+    function saveLocalStorageFallback() {
+        if (!db || !currentUser) {
+            localStorage.setItem('synclife_kpis', JSON.stringify(kpis));
+            localStorage.setItem('synclife_events', JSON.stringify(calendarEvents));
+        }
+    }
+
+    function updateUI() {
         recalculateMetrics();
         renderKPIs();
         renderValidationCards();
@@ -561,7 +562,6 @@
         document.getElementById('screen-dashboard').classList.add('hidden');
         document.getElementById('screen-validation').classList.add('hidden');
         document.getElementById('screen-config').classList.add('hidden');
-
         document.getElementById('screen-' + screenId).classList.remove('hidden');
 
         document.querySelectorAll('.nav-item').forEach(el => {
@@ -571,14 +571,9 @@
         document.getElementById('nav-' + screenId).classList.add('text-indigo-500');
         document.getElementById('nav-' + screenId).classList.remove('text-slate-500');
 
-        if (screenId === 'dashboard') {
-            recalculateMetrics();
-        }
-        renderKPIs();
-        renderValidationCards();
+        updateUI();
     }
 
-    // Navegação de Abas do Painel de Arquitetura (Esquerdo)
     function switchDocTab(tabName) {
         document.querySelectorAll('.doc-tab').forEach(el => {
             el.classList.remove('bg-indigo-600', 'text-white');
@@ -604,7 +599,6 @@
         renderValidationCards();
     }
 
-    // Criar novo KPI (Formulário persistindo na nuvem se ativo)
     async function handleCreateKPI(e) {
         e.preventDefault();
         const nameInput = document.getElementById('kpi-input-name');
@@ -645,8 +639,8 @@
             await setDoc(docRef, newKpi);
         } else {
             kpis.push(newKpi);
-            recalculateMetrics();
-            renderKPIs();
+            saveLocalStorageFallback();
+            updateUI();
         }
 
         nameInput.value = '';
@@ -660,8 +654,8 @@
             await deleteDoc(docRef);
         } else {
             kpis = kpis.filter(k => k.id !== kpiId);
-            recalculateMetrics();
-            renderKPIs();
+            saveLocalStorageFallback();
+            updateUI();
         }
         alertSuccessMessage("KPI Removido.");
     }
@@ -673,14 +667,10 @@
             if (ev.status === 'approved') {
                 if (ev.colorId) {
                     const matchingKpi = kpis.find(k => k.colorId === ev.colorId);
-                    if (matchingKpi) {
-                        matchingKpi.currentMinutes += ev.realMinutes;
-                    }
+                    if (matchingKpi) matchingKpi.currentMinutes += ev.realMinutes;
                 } else if (ev.manualKpiId) {
                     const matchingKpi = kpis.find(k => k.id === ev.manualKpiId);
-                    if (matchingKpi) {
-                        matchingKpi.currentMinutes += ev.realMinutes;
-                    }
+                    if (matchingKpi) matchingKpi.currentMinutes += ev.realMinutes;
                 }
             }
         });
@@ -704,7 +694,6 @@
         if (remainingEl) remainingEl.innerText = remaining.toFixed(1) + "h";
     }
 
-    // Renderizar lista de KPIs na Home e Configurações
     function renderKPIs() {
         const listContainer = document.getElementById('kpi-list-container');
         const configList = document.getElementById('config-kpis-list');
@@ -756,7 +745,7 @@
 
         container.innerHTML = '';
 
-        const todaysEvents = calendarEvents.filter(ev => ev.day === currentSelectedDay);
+        const todaysEvents = calendarEvents.filter(ev => ev.day === currentSelectedDay && ev.status !== 'ignored');
         const pendingCount = todaysEvents.filter(ev => ev.status === 'pending').length;
         document.getElementById('pending-count').innerText = pendingCount + " Pendente(s)";
 
@@ -764,7 +753,7 @@
             container.innerHTML = `
                 <div class="text-center py-10 text-slate-500 flex flex-col items-center gap-2">
                     <i data-lucide="calendar-x" class="w-8 h-8 text-slate-700"></i>
-                    <span>Sem eventos sincronizados neste dia.</span>
+                    <span>Sem eventos pendentes neste dia.</span>
                 </div>
             `;
             lucide.createIcons();
@@ -850,16 +839,20 @@
         if (ev) {
             const newPlanned = Math.max(0, ev.plannedMinutes + amount);
             ev.plannedMinutes = newPlanned;
-            document.getElementById(`time-adjust-${eventId}`).innerText = newPlanned + " min";
             
             if (db && currentUser) {
                 const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', eventId);
                 await updateDoc(docRef, { plannedMinutes: newPlanned });
+            } else {
+                saveLocalStorageFallback();
+                // Força atualização local do elemento e re-calcula as metas
+                const textEl = document.getElementById(`time-adjust-${eventId}`);
+                if (textEl) textEl.innerText = newPlanned + " min";
+                recalculateMetrics(); 
             }
         }
     }
 
-    // Validar todos os pendentes do dia de forma inteligente
     async function validateAllAsPlanned() {
         const todaysEvents = calendarEvents.filter(ev => ev.day === currentSelectedDay && ev.status === 'pending');
         
@@ -899,18 +892,15 @@
         }
 
         if (validatedCount > 0) {
-            alertSuccessMessage(`${validatedCount} evento(s) confirmado(s) na nuvem!`);
+            alertSuccessMessage(`${validatedCount} evento(s) confirmado(s)!`);
         }
 
         if (skippedManualCount > 0) {
-            alertErrorMessage(`${skippedManualCount} sem cor aguardam classificação.`);
+            alertErrorMessage(`${skippedManualCount} evento(s) sem cor precisam de classificação.`);
         }
 
-        if (!db || !currentUser) {
-            recalculateMetrics();
-            renderValidationCards();
-            renderKPIs();
-        }
+        saveLocalStorageFallback();
+        updateUI();
     }
 
     async function validateEvent(eventId, isApproved) {
@@ -937,16 +927,15 @@
                 await updateDoc(docRef, updates);
             } else {
                 Object.assign(ev, updates);
-                recalculateMetrics();
-                renderValidationCards();
-                renderKPIs();
+                saveLocalStorageFallback();
+                updateUI();
             }
         }
     }
 
     function alertSuccessMessage(msg) {
         const notification = document.createElement('div');
-        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg border border-indigo-500/30 z-50 flex items-center gap-1.5 transition-all animate-bounce";
+        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-indigo-650 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg border border-indigo-500/30 z-50 flex items-center gap-1.5 transition-all animate-bounce";
         notification.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> ${msg}`;
         document.body.appendChild(notification);
         lucide.createIcons();
@@ -962,7 +951,7 @@
         setTimeout(() => { notification.remove(); }, 3000);
     }
 
-    // Expor métodos para os botões do HTML (Necessário devido ao escopo ES6 Module)
+    // Expor métodos para os botões do HTML (Escopo global do módulo)
     window.navigate = navigate;
     window.switchDocTab = switchDocTab;
     window.changeDay = changeDay;
@@ -972,7 +961,6 @@
     window.validateAllAsPlanned = validateAllAsPlanned;
     window.validateEvent = validateEvent;
 
-    // Inicialização ao carregar a página
     window.onload = function() {
         initFirebaseStorage();
     }
