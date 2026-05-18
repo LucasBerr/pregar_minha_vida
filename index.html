@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncLife KPI Tracker - Arquitetura e Simulador Nuvem</title>
+    <title>SyncLife KPI Tracker</title>
     <!-- Tailwind CSS para design responsivo moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons para interface profissional -->
@@ -17,10 +17,6 @@
             color: #f1f5f9;
         }
 
-        .mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
         /* Esconder barra de rolagem mas manter funcionalidade */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -29,407 +25,192 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
-        /* Efeito de neon brilhoso para os KPIs ativos */
-        .glow-green { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-        .glow-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-        .glow-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
     </style>
 </head>
-<body class="min-h-screen p-2 md:p-6 bg-slate-950 overflow-x-hidden">
+<body class="min-h-screen bg-slate-950 flex items-center justify-center overflow-x-hidden md:p-4">
 
-<div class="max-w-7xl mx-auto">
-    <!-- Cabeçalho do Projeto -->
-    <header class="mb-8 border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="bg-indigo-500/10 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider border border-indigo-500/20">
-                    Solution Architecture & Real-time Cloud Synced
-                </span>
-            </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-                <i data-lucide="cloud-lightning" class="text-indigo-500 animate-pulse"></i>
-                SyncLife KPI Tracker
-            </h1>
-            <p class="text-slate-400 text-sm mt-1">Plataforma Mobile com Sincronização em Nuvem e Auditoria de Hábitos</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <div class="text-right hidden sm:block">
-                <span class="text-xs text-slate-500 block">Status da Arquitetura</span>
-                <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    Ativo e Sincronizado
-                </span>
-            </div>
-            <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center font-bold text-white shadow-lg">
-                SE
-            </div>
-        </div>
-    </header>
-
-    <!-- Grid Principal de Conteúdo -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Smartphone Wrapper - Em telas menores (mobile) ele vira full screen, em telas maiores vira o mockup de celular -->
+    <div class="relative w-full h-screen md:w-[370px] md:h-[760px] bg-slate-900 md:rounded-[50px] p-0 md:p-3.5 md:shadow-2xl md:border-4 md:border-slate-800 md:ring-12 md:ring-slate-900 flex flex-col overflow-hidden">
         
-        <!-- COLUNA ESQUERDA (8/12) - Abas de Arquitetura, Banco de Dados e Integração API -->
-        <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+        <!-- Ilha da Câmera (Apenas visível no Desktop para simular o telemóvel) -->
+        <div class="absolute top-5 left-1/2 transform -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 hidden md:flex items-center justify-between px-3">
+            <div class="w-3 h-3 bg-slate-900 rounded-full border border-slate-800"></div>
+            <div class="w-10 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- Tela Interna do Aplicativo -->
+        <div class="flex-1 bg-slate-950 md:rounded-[38px] overflow-hidden flex flex-col relative pt-8 pb-4 text-xs">
             
-            <!-- Seleção de Abas de Documentação -->
-            <div class="bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 flex gap-2">
-                <button onclick="switchDocTab('arch')" id="tab-arch" class="doc-tab flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 bg-indigo-600 text-white">
-                    <i data-lucide="git-branch" class="w-4 h-4"></i>
-                    Arquitetura
-                </button>
-                <button onclick="switchDocTab('db')" id="tab-db" class="doc-tab flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-white">
-                    <i data-lucide="database" class="w-4 h-4"></i>
-                    Banco de Dados
-                </button>
-                <button onclick="switchDocTab('api')" id="tab-api" class="doc-tab flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-white">
-                    <i data-lucide="code-2" class="w-4 h-4"></i>
-                    Integração Google
-                </button>
+            <!-- Barra de Status do Telefone -->
+            <div class="absolute top-1 left-0 right-0 px-6 flex justify-between items-center text-[10px] text-slate-400 font-medium z-40">
+                <span>19:20</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] text-indigo-400 mr-1 flex items-center gap-0.5 font-bold" id="cloud-status">
+                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span> Sincronizando
+                    </span>
+                    <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="battery" class="w-3.5 h-3.5"></i>
+                </div>
             </div>
 
-            <div id="content-arch" class="doc-content space-y-6">
-                <!-- Visão Geral de Fluxo -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <i data-lucide="cpu" class="text-indigo-400 w-5 h-5"></i>
-                        Arquitetura de Sistemas (Cloud Synced Hybrid)
-                    </h2>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-4">
-                        A solução foi evoluída para uma arquitetura **Real-time Serverless**. O simulador do smartphone ao lado interage dinamicamente com um banco NoSQL em nuvem. Cada alteração de progresso, validação retroativa ou criação de KPIs persiste de forma instantânea e profissional.
-                    </p>
+            <!-- TELA 1: DASHBOARD -->
+            <div id="screen-dashboard" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4">
+                <!-- Perfil e Meta-Progresso do Dia -->
+                <div class="flex items-center justify-between mt-2">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Olá, Rodrigo</h3>
+                        <p class="text-slate-500 text-[10px]">Semana de Desenvolvimento</p>
+                    </div>
+                    <span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full font-bold text-[9px] border border-indigo-500/10">PRO</span>
+                </div>
+
+                <!-- Card de Performance Semanal -->
+                <div class="bg-gradient-to-br from-indigo-900/40 to-violet-900/40 border border-indigo-800/40 rounded-2xl p-4 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span class="text-[9px] text-indigo-300 font-bold uppercase tracking-wider">Status Geral Semanal</span>
+                        <h2 id="overall-status-title" class="text-lg font-bold text-white mt-1">Carregando...</h2>
+                        <div class="w-full bg-slate-950/80 h-2 rounded-full mt-3 overflow-hidden">
+                            <div id="overall-progress-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-500" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-3 text-slate-400 text-[9px]">
+                            <span id="dashboard-total-hours">Conectando...</span>
+                            <span class="text-emerald-400 flex items-center gap-0.5">
+                                Faltam <span id="hours-remaining-text">--h</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="absolute -right-10 -bottom-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
+                </div>
+
+                <!-- Info do ID de Usuário para Sincronização -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-500 text-[8px] truncate">
+                    <span class="font-bold text-slate-400 block mb-0.5 uppercase tracking-wide">ID de Sincronização:</span>
+                    <span id="sync-user-id" class="font-mono">Carregando...</span>
+                </div>
+
+                <!-- Lista de KPIs do Usuário -->
+                <div>
+                    <div class="flex justify-between items-center mb-2.5">
+                        <h4 class="font-bold text-slate-300 text-[11px] uppercase tracking-wider">Meus KPIs Semanais</h4>
+                        <span class="text-[10px] text-slate-500">Geral</span>
+                    </div>
                     
-                    <!-- Diagrama de Blocos em CSS -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
-                            <span class="text-indigo-400 text-xs font-bold block mb-1">FRONT-END</span>
-                            <div class="font-bold text-white text-sm mb-1">Simulador de Smartphone</div>
-                            <span class="text-slate-500 text-[11px] block">UI Dinâmica em Tempo Real</span>
-                        </div>
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center flex flex-col justify-center relative">
-                            <div class="absolute -left-2 top-1/2 transform -translate-y-1/2 text-indigo-500 hidden md:block">➔</div>
-                            <span class="text-emerald-400 text-xs font-bold block mb-1">DATA FLOW</span>
-                            <div class="font-bold text-white text-sm mb-1">Sync Engine Estável</div>
-                            <span class="text-slate-500 text-[11px] block">Sincronização sem travas locais</span>
-                            <div class="absolute -right-2 top-1/2 transform -translate-y-1/2 text-indigo-500 hidden md:block">➔</div>
-                        </div>
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
-                            <span class="text-purple-400 text-xs font-bold block mb-1">CLOUD DB LAYER</span>
-                            <div class="font-bold text-white text-sm mb-1">Cloud NoSQL Database</div>
-                            <span class="text-slate-500 text-[11px] block">Persistência isolada por dispositivo</span>
-                        </div>
+                    <div id="kpi-list-container" class="space-y-3">
+                        <!-- Injetado dinamicamente -->
                     </div>
-                </div>
-
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h3 class="text-md font-bold text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="shield-check" class="text-emerald-400 w-5 h-5"></i>
-                        Regras de Negócio Fundamentais
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-slate-300">
-                        <li class="flex gap-2 items-start">
-                            <i data-lucide="check-circle" class="text-indigo-500 w-4 h-4 mt-0.5 shrink-0"></i>
-                            <span><strong>Chave de Cor Única:</strong> Cada KPI cadastrado deve possuir um mapeamento exclusivo de <code class="mono text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">colorId</code> do Google Calendar. O sistema impede a criação de KPIs concorrentes com a mesma cor para evitar sobreposição de contabilidade.</span>
-                        </li>
-                        <li class="flex gap-2 items-start">
-                            <i data-lucide="check-circle" class="text-indigo-500 w-4 h-4 mt-0.5 shrink-0"></i>
-                            <span><strong>Auditoria Humana (Human-in-the-loop):</strong> Eventos do calendário fornecem estimativas de tempo planejadas. Apenas tempos ajustados e aprovados na tela de validação diária são de fato somados ao progresso do KPI.</span>
-                        </li>
-                        <li class="flex gap-2 items-start">
-                            <i data-lucide="check-circle" class="text-indigo-500 w-4 h-4 mt-0.5 shrink-0"></i>
-                            <span><strong>Validação Rápida em Lote:</strong> Para dias ideais onde a rotina planejada foi seguida perfeitamente, o botão de validação global acelera a rotina diária do usuário.</span>
-                        </li>
-                    </ul>
                 </div>
             </div>
 
-            <div id="content-db" class="doc-content space-y-6 hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                        <i data-lucide="database" class="text-cyan-400 w-5 h-5"></i>
-                        Estrutura do Banco de Dados em Nuvem (Isolamento por Usuário)
-                    </h2>
-                    <p class="text-slate-400 text-sm mb-6">
-                        Para obedecer às melhores práticas de privacidade e performance, utilizamos caminhos estruturados que segmentam os dados do usuário atual:
-                    </p>
+            <!-- TELA 2: AUDITORIA / VALIDAÇÃO DIÁRIA -->
+            <div id="screen-validation" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Auditoria de Rotina</h3>
+                    <p class="text-slate-500 text-[10px]">Apenas horas validadas somam ao progresso.</p>
+                </div>
 
-                    <!-- Detalhamento de Paths de Segurança -->
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4 font-mono text-[11px] text-slate-300 space-y-2">
-                        <span class="text-indigo-400 font-bold text-xs uppercase block">Caminhos de Gravação (Firestore Rule Priority):</span>
-                        <div class="bg-slate-900 p-2 rounded border border-slate-800">
-                            <strong>Coleção de KPIs:</strong> <br>
-                            /artifacts/{appId}/users/{userId}/kpis
-                        </div>
-                        <div class="bg-slate-900 p-2 rounded border border-slate-800">
-                            <strong>Coleção de Eventos:</strong> <br>
-                            /artifacts/{appId}/users/{userId}/events
-                        </div>
-                    </div>
+                <!-- Seletor de Dias Retroativos -->
+                <div class="flex justify-between bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-[10px]">
+                    <button onclick="changeDay('Segunda')" class="day-btn flex-1 py-1 rounded text-center font-bold bg-indigo-600 text-white">Seg</button>
+                    <button onclick="changeDay('Terça')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Ter</button>
+                    <button onclick="changeDay('Quarta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qua</button>
+                    <button onclick="changeDay('Quinta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qui</button>
+                    <button onclick="changeDay('Sexta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Sex</button>
+                </div>
 
-                    <!-- Coleção: KPIs -->
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-cyan-400 font-bold text-sm uppercase tracking-wide">Coleção: KPIs</span>
-                            <span class="text-slate-500 text-xs">Subcoleção Privada</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs text-slate-300">
-                                <thead>
-                                    <tr class="border-b border-slate-850 text-slate-500">
-                                        <th class="py-1">Campo</th>
-                                        <th class="py-1">Tipo</th>
-                                        <th class="py-1">Descrição / Exemplo</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-850 font-mono">
-                                    <tr>
-                                        <td class="py-2 text-indigo-400">id</td>
-                                        <td class="py-2 text-yellow-500">String</td>
-                                        <td class="py-2 text-slate-400">ID gerado automaticamente</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 text-indigo-400">name</td>
-                                        <td class="py-2 text-yellow-500">String</td>
-                                        <td class="py-2 text-slate-400">Ex: "Estudo de Engenharia"</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 text-indigo-400">colorId</td>
-                                        <td class="py-2 text-yellow-500">String</td>
-                                        <td class="py-2 text-slate-400">Mapeamento do Google Calendar (Ex: '7')</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 text-indigo-400">goalHours</td>
-                                        <td class="py-2 text-yellow-500">Number</td>
-                                        <td class="py-2 text-slate-400">Meta semanal contratada</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="flex items-center justify-between text-slate-400 text-[10px] px-1">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        Dia: <strong class="text-white" id="selected-day-label">Segunda-feira</strong>
+                    </span>
+                    <span class="text-indigo-400 font-bold" id="pending-count">...</span>
+                </div>
 
+                <button onclick="validateAllAsPlanned()" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 font-bold py-2 px-3 rounded-xl text-[10px] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm">
+                    <i data-lucide="check-check" class="w-4 h-4"></i>
+                    Validar Tudo como Planejado
+                </button>
+
+                <div id="validation-cards-container" class="space-y-3.5 flex-1">
+                    <!-- Injetado dinamicamente -->
                 </div>
             </div>
 
-            <div id="content-api" class="doc-content space-y-6 hidden">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                        <i data-lucide="code-2" class="text-emerald-400 w-5 h-5"></i>
-                        Mecanismo de Sincronização do Calendário
-                    </h2>
-                    <p class="text-slate-400 text-sm mb-4">
-                        O motor do aplicativo conecta-se à API do Google para buscar as atividades de forma assíncrona. Os registros retornados são comparados com a base de dados em nuvem para filtrar o que já foi validado pelo usuário.
-                    </p>
+            <!-- TELA 3: CONFIGURAÇÃO DE KPIS -->
+            <div id="screen-config" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Configurar KPIs</h3>
+                    <p class="text-slate-500 text-[10px]">Gerencie suas metas amarradas às cores do Google Calendar.</p>
+                </div>
 
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                        <span class="text-slate-500 text-xs block mb-2">Endpoint REST Utilizado:</span>
-                        <div class="bg-slate-900 p-3 rounded text-xs text-slate-300 font-mono overflow-x-auto mb-4">
-                            GET https://www.googleapis.com/calendar/v3/calendars/primary/events
+                <form id="kpi-form" onsubmit="handleCreateKPI(event)" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                    <span class="text-[9px] text-indigo-400 uppercase tracking-wider font-extrabold">Criar Novo KPI</span>
+                    
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Nome do Indicador</label>
+                        <input type="text" id="kpi-input-name" required placeholder="Ex: Engenharia, Código..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Meta Semanal (Horas)</label>
+                            <input type="number" id="kpi-input-hours" required min="1" max="100" placeholder="Ex: 5" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Cor Google Calendar</label>
+                            <select id="kpi-input-color" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
+                                <option value="7">Peacock (Ciano)</option>
+                                <option value="11">Tomato (Vermelho)</option>
+                                <option value="5">Banana (Amarelo)</option>
+                                <option value="10">Basil (Verde)</option>
+                                <option value="1">Blueberry (Azul)</option>
+                                <option value="6">Grape (Roxo)</option>
+                            </select>
                         </div>
                     </div>
+
+                    <div id="color-conflict-warning" class="hidden text-rose-500 text-[10px] font-semibold bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+                        ⚠️ Esta cor já está mapeada! Escolha outra exclusiva.
+                    </div>
+
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 mt-1">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Adicionar KPI
+                    </button>
+                </form>
+
+                <div>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold block mb-2">KPIs Cadastrados</span>
+                    <div id="config-kpis-list" class="space-y-2">
+                        <!-- Injetado dinamicamente -->
+                    </div>
                 </div>
+            </div>
+
+            <!-- Barra de Navegação Inferior -->
+            <div class="border-t border-slate-900 pt-3 mt-auto px-6 flex justify-between items-center bg-slate-950 z-40">
+                <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center gap-1 text-indigo-500">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-semibold">Home</span>
+                </button>
+                <button onclick="navigate('validation')" id="nav-validation" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white relative">
+                    <i data-lucide="check-square" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-semibold">Auditoria</span>
+                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full"></div>
+                </button>
+                <button onclick="navigate('config')" id="nav-config" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-[9px] font-semibold">KPIs</span>
+                </button>
             </div>
 
         </div>
-
-        <!-- COLUNA DIREITA (4/12) - O Simulador Interativo Mobile -->
-        <div class="lg:col-span-5 xl:col-span-4 flex justify-center">
-            
-            <!-- Smartphone Wrapper -->
-            <div class="relative w-[370px] h-[760px] bg-slate-900 rounded-[50px] p-3.5 shadow-2xl border-4 border-slate-800 ring-12 ring-slate-900 flex flex-col overflow-hidden">
-                <!-- Dynamic Speaker & Camera Island -->
-                <div class="absolute top-5 left-1/2 transform -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 flex items-center justify-between px-3">
-                    <div class="w-3 h-3 bg-slate-900 rounded-full border border-slate-800"></div>
-                    <div class="w-10 h-1 bg-slate-800 rounded-full"></div>
-                </div>
-
-                <!-- Tela Interna do Smartphone -->
-                <div class="flex-1 bg-slate-950 rounded-[38px] overflow-hidden flex flex-col relative pt-8 pb-4 text-xs">
-                    
-                    <!-- Barra de Status do Telefone -->
-                    <div class="absolute top-1 left-0 right-0 px-6 flex justify-between items-center text-[10px] text-slate-400 font-medium z-40">
-                        <span>19:20</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] text-indigo-400 mr-1 flex items-center gap-0.5 font-bold" id="cloud-status">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span> Sincronizando
-                            </span>
-                            <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
-                            <i data-lucide="battery" class="w-3.5 h-3.5"></i>
-                        </div>
-                    </div>
-
-                    <!-- TELA 1: DASHBOARD -->
-                    <div id="screen-dashboard" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4">
-                        <!-- Perfil e Meta-Progresso do Dia -->
-                        <div class="flex items-center justify-between mt-2">
-                            <div>
-                                <h3 class="text-sm font-bold text-white">Olá, Rodrigo</h3>
-                                <p class="text-slate-500 text-[10px]">Semana 21 de Desenvolvimento</p>
-                            </div>
-                            <span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full font-bold text-[9px] border border-indigo-500/10">PRO</span>
-                        </div>
-
-                        <!-- Card de Performance Semanal -->
-                        <div class="bg-gradient-to-br from-indigo-900/40 to-violet-900/40 border border-indigo-800/40 rounded-2xl p-4 relative overflow-hidden">
-                            <div class="relative z-10">
-                                <span class="text-[9px] text-indigo-300 font-bold uppercase tracking-wider">Status Geral Semanal</span>
-                                <h2 id="overall-status-title" class="text-lg font-bold text-white mt-1">Carregando...</h2>
-                                <div class="w-full bg-slate-950/80 h-2 rounded-full mt-3 overflow-hidden">
-                                    <div id="overall-progress-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-500" style="width: 0%;"></div>
-                                </div>
-                                <div class="flex justify-between items-center mt-3 text-slate-400 text-[9px]">
-                                    <span id="dashboard-total-hours">Conectando...</span>
-                                    <span class="text-emerald-400 flex items-center gap-0.5">
-                                        Faltam <span id="hours-remaining-text">--h</span>
-                                    </span>
-                                </div>
-                            </div>
-                            <!-- Background Accent -->
-                            <div class="absolute -right-10 -bottom-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
-                        </div>
-
-                        <!-- Info do ID de Usuário para Sincronização -->
-                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-500 text-[8px] truncate">
-                            <span class="font-bold text-slate-400 block mb-0.5 uppercase tracking-wide">ID de Sincronização Cloud:</span>
-                            <span id="sync-user-id" class="font-mono">Carregando credenciais...</span>
-                        </div>
-
-                        <!-- Lista de KPIs do Usuário -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2.5">
-                                <h4 class="font-bold text-slate-300 text-[11px] uppercase tracking-wider">Meus KPIs Semanais</h4>
-                                <span class="text-[10px] text-slate-500">Visualização Integrada</span>
-                            </div>
-                            
-                            <!-- KPIs Container -->
-                            <div id="kpi-list-container" class="space-y-3">
-                                <!-- KPIs serão injetados de forma reativa pelo JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TELA 2: AUDITORIA / VALIDAÇÃO DIÁRIA -->
-                    <div id="screen-validation" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
-                        <div>
-                            <h3 class="text-sm font-bold text-white">Auditoria de Rotina</h3>
-                            <p class="text-slate-500 text-[10px]">Apenas horas validadas somam ao progresso.</p>
-                        </div>
-
-                        <!-- Seletor de Dias Retroativos -->
-                        <div class="flex justify-between bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-[10px]">
-                            <button onclick="changeDay('Segunda')" class="day-btn flex-1 py-1 rounded text-center font-bold bg-indigo-600 text-white">Seg</button>
-                            <button onclick="changeDay('Terça')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Ter</button>
-                            <button onclick="changeDay('Quarta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qua</button>
-                            <button onclick="changeDay('Quinta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qui</button>
-                            <button onclick="changeDay('Sexta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Sex</button>
-                        </div>
-
-                        <!-- Cabeçalho do dia selecionado -->
-                        <div class="flex items-center justify-between text-slate-400 text-[10px] px-1">
-                            <span class="flex items-center gap-1">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                                Dia Selecionado: <strong class="text-white" id="selected-day-label">Segunda-feira</strong>
-                            </span>
-                            <span class="text-indigo-400 font-bold" id="pending-count">...</span>
-                        </div>
-
-                        <!-- Botão de Sincronização Inteligente em Lote -->
-                        <button onclick="validateAllAsPlanned()" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 font-bold py-2 px-3 rounded-xl text-[10px] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm">
-                            <i data-lucide="check-check" class="w-4 h-4"></i>
-                            Validar Tudo como Planejado
-                        </button>
-
-                        <!-- Fila de Auditoria de Eventos -->
-                        <div id="validation-cards-container" class="space-y-3.5 flex-1">
-                            <!-- Injetado por JS -->
-                        </div>
-                    </div>
-
-                    <!-- TELA 3: CONFIGURAÇÃO DE KPIS -->
-                    <div id="screen-config" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
-                        <div>
-                            <h3 class="text-sm font-bold text-white">Configurar KPIs</h3>
-                            <p class="text-slate-500 text-[10px]">Gerencie suas metas e amarre-as às cores do Google Calendar.</p>
-                        </div>
-
-                        <!-- Formulário de Criação de KPI -->
-                        <form id="kpi-form" onsubmit="handleCreateKPI(event)" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
-                            <span class="text-[9px] text-indigo-400 uppercase tracking-wider font-extrabold">Criar Novo KPI</span>
-                            
-                            <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">Nome do Indicador</label>
-                                <input type="text" id="kpi-input-name" required placeholder="Ex: Leitura, Academia..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Meta Semanal (Horas)</label>
-                                    <input type="number" id="kpi-input-hours" required min="1" max="100" placeholder="Ex: 5" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Cor Google Calendar</label>
-                                    <select id="kpi-input-color" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
-                                        <option value="7">Peacock (Ciano)</option>
-                                        <option value="11">Tomato (Vermelho)</option>
-                                        <option value="5">Banana (Amarelo)</option>
-                                        <option value="10">Basil (Verde)</option>
-                                        <option value="1">Blueberry (Azul)</option>
-                                        <option value="6">Grape (Roxo)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="color-conflict-warning" class="hidden text-rose-500 text-[10px] font-semibold bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-                                ⚠️ Esta cor já está mapeada em outro KPI! Escolha outra cor exclusiva.
-                            </div>
-
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 mt-1">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                                Adicionar KPI
-                            </button>
-                        </form>
-
-                        <!-- Lista para Exclusão de KPIs -->
-                        <div>
-                            <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold block mb-2">KPIs Cadastrados</span>
-                            <div id="config-kpis-list" class="space-y-2">
-                                <!-- Preenchido dinamicamente por JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Barra de Navegação Inferior (Mobile Interface) -->
-                    <div class="border-t border-slate-900 pt-3 mt-auto px-6 flex justify-between items-center bg-slate-950 z-40">
-                        <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center gap-1 text-indigo-500">
-                            <i data-lucide="home" class="w-5 h-5"></i>
-                            <span class="text-[9px] font-semibold">Home</span>
-                        </button>
-                        <button onclick="navigate('validation')" id="nav-validation" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white relative">
-                            <i data-lucide="check-square" class="w-5 h-5"></i>
-                            <span class="text-[9px] font-semibold">Auditoria</span>
-                            <!-- Badge indicador de pendências -->
-                            <div class="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full"></div>
-                        </button>
-                        <button onclick="navigate('config')" id="nav-config" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white">
-                            <i data-lucide="settings" class="w-5 h-5"></i>
-                            <span class="text-[9px] font-semibold">KPIs</span>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-
     </div>
-</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Resgatar variáveis dinâmicas do ecossistema
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'kpi-tracker-app';
     let firebaseConfig = null;
     try {
@@ -442,7 +223,6 @@
     let auth = null;
     let currentUser = null;
 
-    // Inicialização das variáveis de estado
     let kpis = [];
     let calendarEvents = [];
     let currentSelectedDay = "Segunda";
@@ -450,21 +230,20 @@
     const DEFAULT_KPIS = [
         { id: "1", name: "Estudo de Engenharia", colorId: "7", colorHex: "#039BE5", colorName: "Peacock (Ciano)", goalHours: 6, currentMinutes: 240 },
         { id: "2", name: "Treino de Academia", colorId: "11", colorHex: "#F83A22", colorName: "Tomato (Vermelho)", goalHours: 5, currentMinutes: 180 },
-        { id: "3", name: "Leitura de Escrituras", colorId: "5", colorHex: "#FAD165", colorName: "Banana (Amarelo)", goalHours: 3, currentMinutes: 90 }
+        { id: "3", name: "Leitura de Livros", colorId: "5", colorHex: "#FAD165", colorName: "Banana (Amarelo)", goalHours: 3, currentMinutes: 90 }
     ];
 
     const DEFAULT_EVENTS = [
         { id: "e1", day: "Segunda", title: "Curso Next.js & TypeScript", colorId: "7", plannedMinutes: 120, realMinutes: 0, status: "pending", manualKpiId: "" },
-        { id: "e2", day: "Segunda", title: "Treino HIT Pernas", colorId: "11", plannedMinutes: 60, realMinutes: 0, status: "pending", manualKpiId: "" },
+        { id: "e2", day: "Segunda", title: "Treino HIIT Pernas", colorId: "11", plannedMinutes: 60, realMinutes: 0, status: "pending", manualKpiId: "" },
         { id: "e3", day: "Segunda", title: "Evento Extra Sem Classificar", colorId: "", plannedMinutes: 90, realMinutes: 0, status: "pending", manualKpiId: "" },
         { id: "e4", day: "Terça", title: "Revisão de Arquitetura", colorId: "7", plannedMinutes: 120, realMinutes: 120, status: "approved", manualKpiId: "" },
         { id: "e5", day: "Terça", title: "Cardio e Alongamento", colorId: "11", plannedMinutes: 60, realMinutes: 60, status: "approved", manualKpiId: "" },
-        { id: "e6", day: "Quarta", title: "Devocional Escrituras", colorId: "5", plannedMinutes: 45, realMinutes: 0, status: "pending", manualKpiId: "" }
+        { id: "e6", day: "Quarta", title: "Leitura diária", colorId: "5", plannedMinutes: 45, realMinutes: 0, status: "pending", manualKpiId: "" }
     ];
 
     async function initFirebaseStorage() {
         if (!firebaseConfig) {
-            console.log("Variáveis de ambiente de nuvem ausentes. Utilizando armazenamento local persistente (LocalStorage).");
             setLocalOrFallbackData();
             return;
         }
@@ -484,7 +263,7 @@
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUser = user;
-                    document.getElementById('sync-user-id').innerText = user.uid;
+                    document.getElementById('sync-user-id').innerText = user.uid.substring(0, 15) + "...";
                     document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Conectado`;
                     syncDataFromCloud();
                 } else {
@@ -493,7 +272,7 @@
             });
 
         } catch (err) {
-            console.error("Falha ao configurar sincronização remota:", err);
+            console.error("Falha na nuvem:", err);
             setLocalOrFallbackData();
         }
     }
@@ -506,9 +285,7 @@
 
         onSnapshot(kpiColRef, (snapshot) => {
             if (snapshot.empty) {
-                DEFAULT_KPIS.forEach(async (kpi) => {
-                    await setDoc(doc(kpiColRef, kpi.id), kpi);
-                });
+                DEFAULT_KPIS.forEach(async (kpi) => { await setDoc(doc(kpiColRef, kpi.id), kpi); });
             } else {
                 kpis = [];
                 snapshot.forEach(doc => { kpis.push({ id: doc.id, ...doc.data() }); });
@@ -518,9 +295,7 @@
 
         onSnapshot(evColRef, (snapshot) => {
             if (snapshot.empty) {
-                DEFAULT_EVENTS.forEach(async (ev) => {
-                    await setDoc(doc(evColRef, ev.id), ev);
-                });
+                DEFAULT_EVENTS.forEach(async (ev) => { await setDoc(doc(evColRef, ev.id), ev); });
             } else {
                 calendarEvents = [];
                 snapshot.forEach(doc => { calendarEvents.push({ id: doc.id, ...doc.data() }); });
@@ -529,7 +304,6 @@
         });
     }
 
-    // Gerencia o estado LocalStorage de forma limpa
     function setLocalOrFallbackData() {
         const localKPIs = localStorage.getItem('synclife_kpis');
         const localEvents = localStorage.getItem('synclife_events');
@@ -540,8 +314,8 @@
         if (!localKPIs) localStorage.setItem('synclife_kpis', JSON.stringify(kpis));
         if (!localEvents) localStorage.setItem('synclife_events', JSON.stringify(calendarEvents));
 
-        document.getElementById('sync-user-id').innerText = "LocalStorage Ativo (Dados Salvos)";
-        document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-cyan-500"></span> Armazenamento Local`;
+        document.getElementById('sync-user-id').innerText = "LocalStorage (Offline)";
+        document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-cyan-500"></span> Local`;
         updateUI();
     }
 
@@ -572,18 +346,6 @@
         document.getElementById('nav-' + screenId).classList.remove('text-slate-500');
 
         updateUI();
-    }
-
-    function switchDocTab(tabName) {
-        document.querySelectorAll('.doc-tab').forEach(el => {
-            el.classList.remove('bg-indigo-600', 'text-white');
-            el.classList.add('text-slate-400');
-        });
-        document.querySelectorAll('.doc-content').forEach(el => el.classList.add('hidden'));
-
-        document.getElementById('tab-' + tabName).classList.add('bg-indigo-600', 'text-white');
-        document.getElementById('tab-' + tabName).classList.remove('text-slate-400');
-        document.getElementById('content-' + tabName).classList.remove('hidden');
     }
 
     function changeDay(day) {
@@ -688,7 +450,7 @@
 
         if (titleEl) titleEl.innerText = "Concluído: " + overallPercentage + "%";
         if (progressEl) progressEl.style.width = overallPercentage + "%";
-        if (textEl) textEl.innerText = `Meta: ${(totalGoalMinutes/60).toFixed(1)}h | Atual: ${(totalCurrentMinutes/60).toFixed(1)}h`;
+        if (textEl) textEl.innerText = `Meta: ${(totalGoalMinutes/60).toFixed(1)}h | At: ${(totalCurrentMinutes/60).toFixed(1)}h`;
         
         let remaining = Math.max(0, (totalGoalMinutes - totalCurrentMinutes) / 60);
         if (remainingEl) remainingEl.innerText = remaining.toFixed(1) + "h";
@@ -818,7 +580,7 @@
                                 <span class="w-2 h-2 rounded-full" style="background-color: ${colorCircle}"></span>
                                 ${ev.title}
                             </span>
-                            <span class="text-slate-500 text-[10px] block mt-0.5">Realizado: <strong class="text-emerald-400">${ev.realMinutes} minutos</strong></span>
+                            <span class="text-slate-500 text-[10px] block mt-0.5">Realizado: <strong class="text-emerald-400">${ev.realMinutes} min</strong></span>
                         </div>
                         <span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-0.5">
                             <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Validado
@@ -845,7 +607,6 @@
                 await updateDoc(docRef, { plannedMinutes: newPlanned });
             } else {
                 saveLocalStorageFallback();
-                // Força atualização local do elemento e re-calcula as metas
                 const textEl = document.getElementById(`time-adjust-${eventId}`);
                 if (textEl) textEl.innerText = newPlanned + " min";
                 recalculateMetrics(); 
@@ -891,13 +652,8 @@
             }
         }
 
-        if (validatedCount > 0) {
-            alertSuccessMessage(`${validatedCount} evento(s) confirmado(s)!`);
-        }
-
-        if (skippedManualCount > 0) {
-            alertErrorMessage(`${skippedManualCount} evento(s) sem cor precisam de classificação.`);
-        }
+        if (validatedCount > 0) { alertSuccessMessage(`${validatedCount} evento(s) confirmado(s)!`); }
+        if (skippedManualCount > 0) { alertErrorMessage(`${skippedManualCount} evento(s) sem cor precisam de classificação.`); }
 
         saveLocalStorageFallback();
         updateUI();
@@ -935,7 +691,7 @@
 
     function alertSuccessMessage(msg) {
         const notification = document.createElement('div');
-        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-indigo-650 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg border border-indigo-500/30 z-50 flex items-center gap-1.5 transition-all animate-bounce";
+        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-1.5 animate-bounce";
         notification.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> ${msg}`;
         document.body.appendChild(notification);
         lucide.createIcons();
@@ -944,16 +700,14 @@
 
     function alertErrorMessage(msg) {
         const notification = document.createElement('div');
-        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-rose-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg border border-rose-500/30 z-50 flex items-center gap-1.5 transition-all animate-bounce";
+        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-rose-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-1.5 animate-bounce";
         notification.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ${msg}`;
         document.body.appendChild(notification);
         lucide.createIcons();
         setTimeout(() => { notification.remove(); }, 3000);
     }
 
-    // Expor métodos para os botões do HTML (Escopo global do módulo)
     window.navigate = navigate;
-    window.switchDocTab = switchDocTab;
     window.changeDay = changeDay;
     window.handleCreateKPI = handleCreateKPI;
     window.deleteKPI = deleteKPI;
