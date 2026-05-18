@@ -3,721 +3,586 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncLife KPI Tracker</title>
-    <!-- Tailwind CSS para design responsivo moderno -->
+    <title>SyncLife Architecture - Time Manager</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons para interface profissional -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0b0f19;
-            color: #f1f5f9;
-        }
-
-        /* Esconder barra de rolagem mas manter funcionalidade */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        /* Custom scrollbar para manter a estética dark minimalista */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-950 flex items-center justify-center overflow-x-hidden md:p-4">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Smartphone Wrapper - Em telas menores (mobile) ele vira full screen, em telas maiores vira o mockup de celular -->
-    <div class="relative w-full h-screen md:w-[370px] md:h-[760px] bg-slate-900 md:rounded-[50px] p-0 md:p-3.5 md:shadow-2xl md:border-4 md:border-slate-800 md:ring-12 md:ring-slate-900 flex flex-col overflow-hidden">
+    <!-- Smartphone Wrapper Container -->
+    <div class="w-full max-w-md bg-slate-900 min-h-screen sm:min-h-[840px] sm:rounded-3xl sm:border sm:border-slate-800 shadow-2xl flex flex-col relative overflow-hidden">
         
-        <!-- Ilha da Câmera (Apenas visível no Desktop para simular o telemóvel) -->
-        <div class="absolute top-5 left-1/2 transform -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 hidden md:flex items-center justify-between px-3">
-            <div class="w-3 h-3 bg-slate-900 rounded-full border border-slate-800"></div>
-            <div class="w-10 h-1 bg-slate-800 rounded-full"></div>
-        </div>
+        <!-- Header Principal -->
+        <header class="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 flex justify-between items-center">
+            <div>
+                <h1 class="text-sm font-bold tracking-wider text-indigo-400 flex items-center gap-1.5 uppercase">
+                    <i data-lucide="layers" class="w-4 h-4"></i> SyncLife
+                </h1>
+                <p id="current-view-title" class="text-xs text-slate-400 mt-0.5">Dashboard Operacional</p>
+            </div>
+            <div class="bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/50 flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span id="header-efficiency" class="text-[11px] font-mono font-bold text-slate-200">0% Efficient</span>
+            </div>
+        </header>
 
-        <!-- Tela Interna do Aplicativo -->
-        <div class="flex-1 bg-slate-950 md:rounded-[38px] overflow-hidden flex flex-col relative pt-8 pb-4 text-xs">
+        <!-- Main Workspace (Conteúdo Rolável) -->
+        <main class="flex-1 overflow-y-auto p-4 pb-24">
             
-            <!-- Barra de Status do Telefone -->
-            <div class="absolute top-1 left-0 right-0 px-6 flex justify-between items-center text-[10px] text-slate-400 font-medium z-40">
-                <span>19:20</span>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[9px] text-indigo-400 mr-1 flex items-center gap-0.5 font-bold" id="cloud-status">
-                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span> Sincronizando
-                    </span>
-                    <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
-                    <i data-lucide="battery" class="w-3.5 h-3.5"></i>
-                </div>
-            </div>
-
-            <!-- TELA 1: DASHBOARD -->
-            <div id="screen-dashboard" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4">
-                <!-- Perfil e Meta-Progresso do Dia -->
-                <div class="flex items-center justify-between mt-2">
-                    <div>
-                        <h3 class="text-sm font-bold text-white">Olá, Rodrigo</h3>
-                        <p class="text-slate-500 text-[10px]">Semana de Desenvolvimento</p>
+            <!-- ABA 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content active space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Planejado</span>
+                        <span id="dash-total-planned" class="text-lg font-mono font-bold text-indigo-400 mt-1">0.0h</span>
                     </div>
-                    <span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full font-bold text-[9px] border border-indigo-500/10">PRO</span>
-                </div>
-
-                <!-- Card de Performance Semanal -->
-                <div class="bg-gradient-to-br from-indigo-900/40 to-violet-900/40 border border-indigo-800/40 rounded-2xl p-4 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <span class="text-[9px] text-indigo-300 font-bold uppercase tracking-wider">Status Geral Semanal</span>
-                        <h2 id="overall-status-title" class="text-lg font-bold text-white mt-1">Carregando...</h2>
-                        <div class="w-full bg-slate-950/80 h-2 rounded-full mt-3 overflow-hidden">
-                            <div id="overall-progress-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full transition-all duration-500" style="width: 0%;"></div>
-                        </div>
-                        <div class="flex justify-between items-center mt-3 text-slate-400 text-[9px]">
-                            <span id="dashboard-total-hours">Conectando...</span>
-                            <span class="text-emerald-400 flex items-center gap-0.5">
-                                Faltam <span id="hours-remaining-text">--h</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="absolute -right-10 -bottom-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
-                </div>
-
-                <!-- Info do ID de Usuário para Sincronização -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-500 text-[8px] truncate">
-                    <span class="font-bold text-slate-400 block mb-0.5 uppercase tracking-wide">ID de Sincronização:</span>
-                    <span id="sync-user-id" class="font-mono">Carregando...</span>
-                </div>
-
-                <!-- Lista de KPIs do Usuário -->
-                <div>
-                    <div class="flex justify-between items-center mb-2.5">
-                        <h4 class="font-bold text-slate-300 text-[11px] uppercase tracking-wider">Meus KPIs Semanais</h4>
-                        <span class="text-[10px] text-slate-500">Geral</span>
-                    </div>
-                    
-                    <div id="kpi-list-container" class="space-y-3">
-                        <!-- Injetado dinamicamente -->
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Executado</span>
+                        <span id="dash-total-real" class="text-lg font-mono font-bold text-emerald-400 mt-1">0.0h</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- TELA 2: AUDITORIA / VALIDAÇÃO DIÁRIA -->
-            <div id="screen-validation" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
-                <div>
-                    <h3 class="text-sm font-bold text-white">Auditoria de Rotina</h3>
-                    <p class="text-slate-500 text-[10px]">Apenas horas validadas somam ao progresso.</p>
-                </div>
-
-                <!-- Seletor de Dias Retroativos -->
-                <div class="flex justify-between bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-[10px]">
-                    <button onclick="changeDay('Segunda')" class="day-btn flex-1 py-1 rounded text-center font-bold bg-indigo-600 text-white">Seg</button>
-                    <button onclick="changeDay('Terça')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Ter</button>
-                    <button onclick="changeDay('Quarta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qua</button>
-                    <button onclick="changeDay('Quinta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Qui</button>
-                    <button onclick="changeDay('Sexta')" class="day-btn flex-1 py-1 rounded text-center font-bold text-slate-400 hover:text-white">Sex</button>
-                </div>
-
-                <div class="flex items-center justify-between text-slate-400 text-[10px] px-1">
-                    <span class="flex items-center gap-1">
-                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                        Dia: <strong class="text-white" id="selected-day-label">Segunda-feira</strong>
-                    </span>
-                    <span class="text-indigo-400 font-bold" id="pending-count">...</span>
-                </div>
-
-                <button onclick="validateAllAsPlanned()" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 font-bold py-2 px-3 rounded-xl text-[10px] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm">
-                    <i data-lucide="check-check" class="w-4 h-4"></i>
-                    Validar Tudo como Planejado
-                </button>
-
-                <div id="validation-cards-container" class="space-y-3.5 flex-1">
-                    <!-- Injetado dinamicamente -->
-                </div>
-            </div>
-
-            <!-- TELA 3: CONFIGURAÇÃO DE KPIS -->
-            <div id="screen-config" class="flex-1 overflow-y-auto no-scrollbar px-4 flex flex-col gap-4 hidden">
-                <div>
-                    <h3 class="text-sm font-bold text-white">Configurar KPIs</h3>
-                    <p class="text-slate-500 text-[10px]">Gerencie suas metas amarradas às cores do Google Calendar.</p>
-                </div>
-
-                <form id="kpi-form" onsubmit="handleCreateKPI(event)" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
-                    <span class="text-[9px] text-indigo-400 uppercase tracking-wider font-extrabold">Criar Novo KPI</span>
-                    
-                    <div>
-                        <label class="text-[10px] text-slate-400 block mb-1">Nome do Indicador</label>
-                        <input type="text" id="kpi-input-name" required placeholder="Ex: Engenharia, Código..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+                <!-- Gráficos Analíticos de KPIs -->
+                <div class="bg-slate-800/30 p-3.5 rounded-xl border border-slate-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Performance Semanal por KPI
+                    </h3>
+                    <div id="dashboard-kpi-charts" class="space-y-3 pt-1">
+                        <!-- Gerado Dinamicamente -->
                     </div>
+                </div>
+            </section>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-[10px] text-slate-400 block mb-1">Meta Semanal (Horas)</label>
-                            <input type="number" id="kpi-input-hours" required min="1" max="100" placeholder="Ex: 5" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-slate-400 block mb-1">Cor Google Calendar</label>
-                            <select id="kpi-input-color" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
-                                <option value="7">Peacock (Ciano)</option>
-                                <option value="11">Tomato (Vermelho)</option>
-                                <option value="5">Banana (Amarelo)</option>
-                                <option value="10">Basil (Verde)</option>
-                                <option value="1">Blueberry (Azul)</option>
-                                <option value="6">Grape (Roxo)</option>
+            <!-- ABA 2: KPIs -->
+            <section id="tab-kpis" class="tab-content space-y-4">
+                <form id="kpi-form" onsubmit="window.handleCreateKPI(event)" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Novo Indicador Operacional (KPI)</h3>
+                    <div class="space-y-2">
+                        <input type="text" id="kpi-title" placeholder="Nome do KPI (ex: Engenharia, Saúde)" required 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="kpi-target" placeholder="Meta Semanal (Horas)" required min="0.1" step="0.1"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-mono">
+                            <select id="kpi-color" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                                <option value="indigo">Indigo</option>
+                                <option value="emerald">Emerald</option>
+                                <option value="amber">Amber</option>
+                                <option value="rose">Rose</option>
+                                <option value="cyan">Cyan</option>
+                                <option value="violet">Violet</option>
                             </select>
                         </div>
                     </div>
-
-                    <div id="color-conflict-warning" class="hidden text-rose-500 text-[10px] font-semibold bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-                        ⚠️ Esta cor já está mapeada! Escolha outra exclusiva.
-                    </div>
-
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 mt-1">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        Adicionar KPI
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Indicador
                     </button>
                 </form>
 
-                <div>
-                    <span class="text-[9px] text-slate-500 uppercase tracking-wider font-bold block mb-2">KPIs Cadastrados</span>
-                    <div id="config-kpis-list" class="space-y-2">
-                        <!-- Injetado dinamicamente -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">KPIs Cadastrados</h3>
+                    <div id="kpi-list" class="space-y-2">
+                        <!-- Gerado Dinamicamente -->
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Barra de Navegação Inferior -->
-            <div class="border-t border-slate-900 pt-3 mt-auto px-6 flex justify-between items-center bg-slate-950 z-40">
-                <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center gap-1 text-indigo-500">
-                    <i data-lucide="home" class="w-5 h-5"></i>
-                    <span class="text-[9px] font-semibold">Home</span>
-                </button>
-                <button onclick="navigate('validation')" id="nav-validation" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white relative">
-                    <i data-lucide="check-square" class="w-5 h-5"></i>
-                    <span class="text-[9px] font-semibold">Auditoria</span>
-                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full"></div>
-                </button>
-                <button onclick="navigate('config')" id="nav-config" class="nav-item flex flex-col items-center gap-1 text-slate-500 hover:text-white">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                    <span class="text-[9px] font-semibold">KPIs</span>
-                </button>
-            </div>
+            <!-- ABA 3: AGENDA (CRONOGRAMA SEMANAL) -->
+            <section id="tab-agenda" class="tab-content space-y-4">
+                <form id="agenda-form" onsubmit="window.handleCreateEvent(event)" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Alocar Bloco de Tempo</h3>
+                    <div class="space-y-2">
+                        <input type="text" id="event-title" placeholder="Nome da Atividade" required 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="event-day" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                                <option value="Segunda">Segunda-feira</option>
+                                <option value="Terça">Terça-feira</option>
+                                <option value="Quarta">Quarta-feira</option>
+                                <option value="Quinta">Quinta-feira</option>
+                                <option value="Sexta">Sexta-feira</option>
+                            </select>
+                            <input type="number" id="event-duration" placeholder="Duração (Minutos)" required min="5"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-mono">
+                        </div>
+                        <select id="event-kpi-link" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                            <!-- Injetado via JS de acordo com os KPIs existentes -->
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
+                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Agendar Atividade
+                    </button>
+                </form>
 
-        </div>
+                <!-- Visualização e Filtro de Agenda Semanal -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Grade Semanal</h3>
+                        <select id="agenda-filter-day" onchange="window.renderAgendaView()" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none">
+                            <option value="Todos">Ver Semana Toda</option>
+                            <option value="Segunda">Segunda</option>
+                            <option value="Terça">Terça</option>
+                            <option value="Quarta">Quarta</option>
+                            <option value="Quinta">Quinta</option>
+                            <option value="Sexta">Sexta</option>
+                        </select>
+                    </div>
+                    <div id="agenda-list" class="space-y-2">
+                        <!-- Gerado Dinamicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 4: AUDITORIA OPERACIONAL -->
+            <section id="tab-auditoria" class="tab-content space-y-4">
+                <!-- Seletor Rápido de Dias Úteis -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 justify-between items-center text-center">
+                    <button onclick="window.setAuditoriaDay('Segunda')" id="day-btn-Segunda" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Seg</button>
+                    <button onclick="window.setAuditoriaDay('Terça')" id="day-btn-Terça" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Ter</button>
+                    <button onclick="window.setAuditoriaDay('Quarta')" id="day-btn-Quarta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Qua</button>
+                    <button onclick="window.setAuditoriaDay('Quinta')" id="day-btn-Quinta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Qui</button>
+                    <button onclick="window.setAuditoriaDay('Sexta')" id="day-btn-Sexta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Sex</button>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-indigo-400"></i> Blocos Planejados para o Dia
+                    </h3>
+                    <button onclick="window.validateAllAsPlanned()" class="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/40">
+                        <i data-lucide="check-check" class="w-3 h-3"></i> Validar Tudo
+                    </button>
+                </div>
+
+                <!-- Lista de Cards para Ajuste de Tempo -->
+                <div id="auditoria-list" class="space-y-2">
+                    <!-- Gerado Dinamicamente -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Barra de Navegação Inferior Fixa (Estilo Mobile Dock) -->
+        <nav class="absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 grid grid-cols-4 py-2.5 px-2 backdrop-blur z-50">
+            <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-indigo-500 transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Dashboard</span>
+            </button>
+            <button onclick="window.switchTab('kpis')" id="nav-kpis" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">KPIs</span>
+            </button>
+            <button onclick="window.switchTab('agenda')" id="nav-agenda" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="calendar" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Agenda</span>
+            </button>
+            <button onclick="window.switchTab('auditoria')" id="nav-auditoria" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="sliders" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">Auditoria</span>
+            </button>
+        </nav>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Módulo Central de Dados e Lógica Computacional -->
+    <script type="module">
+        // Variáveis Globais de Estado
+        let kpis = JSON.parse(localStorage.getItem('SL_KPIS')) || [];
+        let calendarEvents = JSON.parse(localStorage.getItem('SL_EVENTS')) || [];
+        let activeTab = 'dashboard';
+        let activeAuditoriaDay = 'Segunda';
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'kpi-tracker-app';
-    let firebaseConfig = null;
-    try {
-        firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    } catch(e) {
-        console.error("Erro ao converter firebaseConfig:", e);
-    }
+        // Mapeamento de variantes de cores Tailwind seguras contra purga do compilador
+        const colorMap = {
+            indigo: { bg: 'bg-indigo-500', text: 'text-indigo-400', border: 'border-indigo-500/20', raw: '#6366f1', fill: 'bg-indigo-950/30' },
+            emerald: { bg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/20', raw: '#10b981', fill: 'bg-emerald-950/30' },
+            amber: { bg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/20', raw: '#f59e0b', fill: 'bg-amber-950/30' },
+            rose: { bg: 'bg-rose-500', text: 'text-rose-400', border: 'border-rose-500/20', raw: '#f43f5e', fill: 'bg-rose-950/30' },
+            cyan: { bg: 'bg-cyan-500', text: 'text-cyan-400', border: 'border-cyan-500/20', raw: '#06b6d4', fill: 'bg-cyan-950/30' },
+            violet: { bg: 'bg-violet-500', text: 'text-violet-400', border: 'border-violet-500/20', raw: '#8b5cf6', fill: 'bg-violet-950/30' }
+        };
 
-    let db = null;
-    let auth = null;
-    let currentUser = null;
-
-    let kpis = [];
-    let calendarEvents = [];
-    let currentSelectedDay = "Segunda";
-
-    const DEFAULT_KPIS = [
-        { id: "1", name: "Estudo de Engenharia", colorId: "7", colorHex: "#039BE5", colorName: "Peacock (Ciano)", goalHours: 6, currentMinutes: 240 },
-        { id: "2", name: "Treino de Academia", colorId: "11", colorHex: "#F83A22", colorName: "Tomato (Vermelho)", goalHours: 5, currentMinutes: 180 },
-        { id: "3", name: "Leitura de Livros", colorId: "5", colorHex: "#FAD165", colorName: "Banana (Amarelo)", goalHours: 3, currentMinutes: 90 }
-    ];
-
-    const DEFAULT_EVENTS = [
-        { id: "e1", day: "Segunda", title: "Curso Next.js & TypeScript", colorId: "7", plannedMinutes: 120, realMinutes: 0, status: "pending", manualKpiId: "" },
-        { id: "e2", day: "Segunda", title: "Treino HIIT Pernas", colorId: "11", plannedMinutes: 60, realMinutes: 0, status: "pending", manualKpiId: "" },
-        { id: "e3", day: "Segunda", title: "Evento Extra Sem Classificar", colorId: "", plannedMinutes: 90, realMinutes: 0, status: "pending", manualKpiId: "" },
-        { id: "e4", day: "Terça", title: "Revisão de Arquitetura", colorId: "7", plannedMinutes: 120, realMinutes: 120, status: "approved", manualKpiId: "" },
-        { id: "e5", day: "Terça", title: "Cardio e Alongamento", colorId: "11", plannedMinutes: 60, realMinutes: 60, status: "approved", manualKpiId: "" },
-        { id: "e6", day: "Quarta", title: "Leitura diária", colorId: "5", plannedMinutes: 45, realMinutes: 0, status: "pending", manualKpiId: "" }
-    ];
-
-    async function initFirebaseStorage() {
-        if (!firebaseConfig) {
-            setLocalOrFallbackData();
-            return;
+        // Persistência Atômica de Estado
+        function saveStateToStorage() {
+            localStorage.setItem('SL_KPIS', JSON.stringify(kpis));
+            localStorage.setItem('SL_EVENTS', JSON.stringify(calendarEvents));
         }
 
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
+        // Engine de Renderização e Chaveamento de Abas
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
 
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-                await signInAnonymously(auth);
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('sync-user-id').innerText = user.uid.substring(0, 15) + "...";
-                    document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Conectado`;
-                    syncDataFromCloud();
+            // Atualização dos botões da Bottom Bar
+            ['dashboard', 'kpis', 'agenda', 'auditoria'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if(t === tabId) {
+                    navBtn.className = "flex flex-col items-center gap-1 text-indigo-500 transition";
                 } else {
-                    setLocalOrFallbackData();
+                    navBtn.className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
                 }
             });
 
-        } catch (err) {
-            console.error("Falha na nuvem:", err);
-            setLocalOrFallbackData();
+            // Títulos e triggers contextuais de renderização
+            const titles = { dashboard: "Dashboard Operacional", kpis: "Indicadores Estratégicos", agenda: "Cronograma de Rotina", auditoria: "Auditoria de Atividades" };
+            document.getElementById('current-view-title').innerText = titles[tabId];
+
+            if(tabId === 'agenda') updateKpiDropdownOptions();
+            
+            recalculateAndSyncUI();
         }
-    }
 
-    function syncDataFromCloud() {
-        if (!db || !currentUser) return;
-
-        const kpiColRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'kpis');
-        const evColRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'events');
-
-        onSnapshot(kpiColRef, (snapshot) => {
-            if (snapshot.empty) {
-                DEFAULT_KPIS.forEach(async (kpi) => { await setDoc(doc(kpiColRef, kpi.id), kpi); });
-            } else {
-                kpis = [];
-                snapshot.forEach(doc => { kpis.push({ id: doc.id, ...doc.data() }); });
-                updateUI();
+        // Atualiza dinamicamente o select de vínculo na criação de eventos da agenda
+        function updateKpiDropdownOptions() {
+            const selectEl = document.getElementById('event-kpi-link');
+            if(!selectEl) return;
+            if(kpis.length === 0) {
+                selectEl.innerHTML = '<option value="">Nenhum KPI cadastrado. Crie um primeiro!</option>';
+                return;
             }
-        });
-
-        onSnapshot(evColRef, (snapshot) => {
-            if (snapshot.empty) {
-                DEFAULT_EVENTS.forEach(async (ev) => { await setDoc(doc(evColRef, ev.id), ev); });
-            } else {
-                calendarEvents = [];
-                snapshot.forEach(doc => { calendarEvents.push({ id: doc.id, ...doc.data() }); });
-                updateUI();
-            }
-        });
-    }
-
-    function setLocalOrFallbackData() {
-        const localKPIs = localStorage.getItem('synclife_kpis');
-        const localEvents = localStorage.getItem('synclife_events');
-
-        kpis = localKPIs ? JSON.parse(localKPIs) : [...DEFAULT_KPIS];
-        calendarEvents = localEvents ? JSON.parse(localEvents) : [...DEFAULT_EVENTS];
-
-        if (!localKPIs) localStorage.setItem('synclife_kpis', JSON.stringify(kpis));
-        if (!localEvents) localStorage.setItem('synclife_events', JSON.stringify(calendarEvents));
-
-        document.getElementById('sync-user-id').innerText = "LocalStorage (Offline)";
-        document.getElementById('cloud-status').innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-cyan-500"></span> Local`;
-        updateUI();
-    }
-
-    function saveLocalStorageFallback() {
-        if (!db || !currentUser) {
-            localStorage.setItem('synclife_kpis', JSON.stringify(kpis));
-            localStorage.setItem('synclife_events', JSON.stringify(calendarEvents));
-        }
-    }
-
-    function updateUI() {
-        recalculateMetrics();
-        renderKPIs();
-        renderValidationCards();
-    }
-
-    function navigate(screenId) {
-        document.getElementById('screen-dashboard').classList.add('hidden');
-        document.getElementById('screen-validation').classList.add('hidden');
-        document.getElementById('screen-config').classList.add('hidden');
-        document.getElementById('screen-' + screenId).classList.remove('hidden');
-
-        document.querySelectorAll('.nav-item').forEach(el => {
-            el.classList.remove('text-indigo-500');
-            el.classList.add('text-slate-500');
-        });
-        document.getElementById('nav-' + screenId).classList.add('text-indigo-500');
-        document.getElementById('nav-' + screenId).classList.remove('text-slate-500');
-
-        updateUI();
-    }
-
-    function changeDay(day) {
-        currentSelectedDay = day;
-        document.querySelectorAll('.day-btn').forEach(btn => {
-            btn.classList.remove('bg-indigo-600', 'text-white');
-            btn.classList.add('text-slate-400');
-        });
-        if (event && event.target) {
-            event.target.classList.add('bg-indigo-600', 'text-white');
-        }
-        document.getElementById('selected-day-label').innerText = day + "-feira";
-        renderValidationCards();
-    }
-
-    async function handleCreateKPI(e) {
-        e.preventDefault();
-        const nameInput = document.getElementById('kpi-input-name');
-        const hoursInput = document.getElementById('kpi-input-hours');
-        const colorInput = document.getElementById('kpi-input-color');
-
-        const isColorUsed = kpis.some(kpi => kpi.colorId === colorInput.value);
-
-        if (isColorUsed) {
-            const warning = document.getElementById('color-conflict-warning');
-            warning.classList.remove('hidden');
-            setTimeout(() => { warning.classList.add('hidden'); }, 4000);
-            return;
+            selectEl.innerHTML = kpis.map(k => `<option value="${k.id}">${k.name} (Meta: ${k.target}h)</option>`).join('');
         }
 
-        const colorMap = {
-            "7": { hex: "#039BE5", name: "Peacock (Ciano)" },
-            "11": { hex: "#F83A22", name: "Tomato (Vermelho)" },
-            "5": { hex: "#FAD165", name: "Banana (Amarelo)" },
-            "10": { hex: "#0B8043", name: "Basil (Verde)" },
-            "1": { hex: "#A4BDFC", name: "Blueberry (Azul)" },
-            "6": { hex: "#F691B2", name: "Grape (Roxo)" }
-        };
+        // CRUD: Criação de Indicadores Estratégicos (KPIs)
+        function handleCreateKPI(e) {
+            e.preventDefault();
+            const name = document.getElementById('kpi-title').value.trim();
+            const target = parseFloat(document.getElementById('kpi-target').value);
+            const color = document.getElementById('kpi-color').value;
 
-        const newId = Date.now().toString();
-        const newKpi = {
-            id: newId,
-            name: nameInput.value,
-            colorId: colorInput.value,
-            colorHex: colorMap[colorInput.value].hex,
-            colorName: colorMap[colorInput.value].name,
-            goalHours: parseInt(hoursInput.value),
-            currentMinutes: 0
-        };
+            if(!name || isNaN(target)) return;
 
-        if (db && currentUser) {
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'kpis', newId);
-            await setDoc(docRef, newKpi);
-        } else {
+            const newKpi = { id: 'kpi_' + Date.now(), name, target, color };
             kpis.push(newKpi);
-            saveLocalStorageFallback();
-            updateUI();
+            saveStateToStorage();
+            
+            document.getElementById('kpi-form').reset();
+            recalculateAndSyncUI();
         }
 
-        nameInput.value = '';
-        hoursInput.value = '';
-        alertSuccessMessage("KPI Cadastrado!");
-    }
-
-    async function deleteKPI(kpiId) {
-        if (db && currentUser) {
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'kpis', kpiId);
-            await deleteDoc(docRef);
-        } else {
+        function deleteKPI(kpiId) {
             kpis = kpis.filter(k => k.id !== kpiId);
-            saveLocalStorageFallback();
-            updateUI();
+            // Cascateamento preventivo: desvincula eventos órfãos
+            calendarEvents = calendarEvents.filter(ev => ev.manualKpiId !== kpiId);
+            saveStateToStorage();
+            recalculateAndSyncUI();
         }
-        alertSuccessMessage("KPI Removido.");
-    }
 
-    function recalculateMetrics() {
-        kpis.forEach(k => k.currentMinutes = 0);
+        // CRUD: Alocação de Blocos de Tempo Semanais (Agenda)
+        function handleCreateEvent(e) {
+            e.preventDefault();
+            const title = document.getElementById('event-title').value.trim();
+            const day = document.getElementById('event-day').value;
+            const duration = parseInt(document.getElementById('event-duration').value);
+            const kpiId = document.getElementById('event-kpi-link').value;
 
-        calendarEvents.forEach(ev => {
-            if (ev.status === 'approved') {
-                if (ev.colorId) {
-                    const matchingKpi = kpis.find(k => k.colorId === ev.colorId);
-                    if (matchingKpi) matchingKpi.currentMinutes += ev.realMinutes;
-                } else if (ev.manualKpiId) {
-                    const matchingKpi = kpis.find(k => k.id === ev.manualKpiId);
-                    if (matchingKpi) matchingKpi.currentMinutes += ev.realMinutes;
-                }
+            if(!title || isNaN(duration) || !kpiId) return;
+
+            const newEvent = {
+                id: 'ev_' + Date.now(),
+                day,
+                title,
+                plannedMinutes: duration,
+                realMinutes: 0,
+                status: 'pending', // pending, validated, altered
+                manualKpiId: kpiId
+            };
+
+            calendarEvents.push(newEvent);
+            saveStateToStorage();
+
+            document.getElementById('agenda-form').reset();
+            updateKpiDropdownOptions();
+            recalculateAndSyncUI();
+        }
+
+        function deleteEvent(eventId) {
+            calendarEvents = calendarEvents.filter(ev => ev.id !== eventId);
+            saveStateToStorage();
+            recalculateAndSyncUI();
+        }
+
+        // Núcleo de Controle da Aba de Auditoria
+        function setAuditoriaDay(day) {
+            activeAuditoriaDay = day;
+            renderAuditoriaView();
+        }
+
+        function adjustTime(eventId, deltaMinutes) {
+            const ev = calendarEvents.find(e => e.id === eventId);
+            if(!ev) return;
+            
+            // Se o estado era pendente, inicializa o real com a estimativa planejada antes do ajuste
+            if(ev.status === 'pending') {
+                ev.realMinutes = ev.plannedMinutes;
             }
-        });
+            
+            ev.realMinutes = Math.max(0, ev.realMinutes + deltaMinutes);
+            ev.status = 'altered';
+            
+            saveStateToStorage();
+            recalculateAndSyncUI();
+        }
 
-        let totalGoalMinutes = kpis.reduce((acc, kpi) => acc + (kpi.goalHours * 60), 0);
-        let totalCurrentMinutes = kpis.reduce((acc, kpi) => acc + kpi.currentMinutes, 0);
+        function validateEvent(eventId) {
+            const ev = calendarEvents.find(e => e.id === eventId);
+            if(!ev) return;
+            
+            ev.realMinutes = ev.plannedMinutes;
+            ev.status = 'validated';
+            
+            saveStateToStorage();
+            recalculateAndSyncUI();
+        }
 
-        let overallPercentage = totalGoalMinutes > 0 ? Math.round((totalCurrentMinutes / totalGoalMinutes) * 100) : 0;
-        overallPercentage = Math.min(overallPercentage, 100);
+        function validateAllAsPlanned() {
+            calendarEvents.forEach(ev => {
+                if(ev.day === activeAuditoriaDay && ev.status === 'pending') {
+                    ev.realMinutes = ev.plannedMinutes;
+                    ev.status = 'validated';
+                }
+            });
+            saveStateToStorage();
+            recalculateAndSyncUI();
+        }
 
-        const titleEl = document.getElementById('overall-status-title');
-        const progressEl = document.getElementById('overall-progress-bar');
-        const textEl = document.getElementById('dashboard-total-hours');
-        const remainingEl = document.getElementById('hours-remaining-text');
+        // Motor Analítico de Cálculo de Métricas e Sincronização de UI
+        function recalculateAndSyncUI() {
+            // Renderizações por aba específica dependendo do contexto visível
+            renderKPIView();
+            renderAgendaView();
+            renderAuditoriaView();
+            renderDashboardView();
 
-        if (titleEl) titleEl.innerText = "Concluído: " + overallPercentage + "%";
-        if (progressEl) progressEl.style.width = overallPercentage + "%";
-        if (textEl) textEl.innerText = `Meta: ${(totalGoalMinutes/60).toFixed(1)}h | At: ${(totalCurrentMinutes/60).toFixed(1)}h`;
-        
-        let remaining = Math.max(0, (totalGoalMinutes - totalCurrentMinutes) / 60);
-        if (remainingEl) remainingEl.innerText = remaining.toFixed(1) + "h";
-    }
+            // Computação da Eficiência Geral no Header (Real / Planejado Geral)
+            let totalPlannedMin = 0;
+            let totalRealMin = 0;
 
-    function renderKPIs() {
-        const listContainer = document.getElementById('kpi-list-container');
-        const configList = document.getElementById('config-kpis-list');
-        if (!listContainer || !configList) return;
+            calendarEvents.forEach(ev => {
+                totalPlannedMin += ev.plannedMinutes;
+                totalRealMin += ev.realMinutes;
+            });
 
-        listContainer.innerHTML = '';
-        configList.innerHTML = '';
-
-        kpis.forEach(k => {
-            const currentHours = (k.currentMinutes / 60).toFixed(1);
-            const progressPercent = Math.min(Math.round((k.currentMinutes / (k.goalHours * 60)) * 100), 100);
-
-            const kpiCard = document.createElement('div');
-            kpiCard.className = "bg-slate-900 border border-slate-800 p-3 rounded-2xl flex flex-col gap-2";
-            kpiCard.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <span class="flex items-center gap-1.5 font-bold text-white text-[11px]">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${k.colorHex}"></span>
-                        ${k.name}
-                    </span>
-                    <span class="text-slate-400 text-[10px] font-semibold">${currentHours}h / ${k.goalHours}h</span>
-                </div>
-                <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-300" style="background-color: ${k.colorHex}; width: ${progressPercent}%"></div>
-                </div>
-            `;
-            listContainer.appendChild(kpiCard);
-
-            const configItem = document.createElement('div');
-            configItem.className = "bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center";
-            configItem.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${k.colorHex}"></span>
-                    <span class="font-semibold text-white text-[11px]">${k.name} (${k.goalHours}h)</span>
-                </div>
-                <button type="button" onclick="deleteKPI('${k.id}')" class="text-rose-500 hover:text-rose-400 p-1">
-                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
-                </button>
-            `;
-            configList.appendChild(configItem);
-        });
-
-        lucide.createIcons();
-    }
-
-    function renderValidationCards() {
-        const container = document.getElementById('validation-cards-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        const todaysEvents = calendarEvents.filter(ev => ev.day === currentSelectedDay && ev.status !== 'ignored');
-        const pendingCount = todaysEvents.filter(ev => ev.status === 'pending').length;
-        document.getElementById('pending-count').innerText = pendingCount + " Pendente(s)";
-
-        if (todaysEvents.length === 0) {
-            container.innerHTML = `
-                <div class="text-center py-10 text-slate-500 flex flex-col items-center gap-2">
-                    <i data-lucide="calendar-x" class="w-8 h-8 text-slate-700"></i>
-                    <span>Sem eventos pendentes neste dia.</span>
-                </div>
-            `;
+            const efficiency = totalPlannedMin > 0 ? Math.round((totalRealMin / totalPlannedMin) * 100) : 0;
+            document.getElementById('header-efficiency').innerText = `${efficiency}% Efficient`;
+            
+            // Força remontagem estrutural dos ícones dinâmicos do Lucide
             lucide.createIcons();
-            return;
         }
 
-        todaysEvents.forEach(ev => {
-            const durationText = ev.plannedMinutes >= 60 ? `${ev.plannedMinutes/60}h` : `${ev.plannedMinutes}min`;
-            const matchingKpi = kpis.find(k => k.colorId === ev.colorId);
-            const colorCircle = ev.colorId ? (matchingKpi ? matchingKpi.colorHex : '#cccccc') : '#888888';
-
-            const card = document.createElement('div');
-            card.className = `p-3.5 rounded-2xl border transition-all ${ev.status === 'approved' ? 'bg-indigo-950/10 border-indigo-900/40 opacity-75' : 'bg-slate-900 border-slate-800'}`;
+        // Sub-Renderizador: Dashboard Analítico
+        function renderDashboardView() {
+            let totalPlannedMin = 0;
+            let totalRealMin = 0;
             
-            let bodyHTML = '';
+            // Inicializa acumuladores analíticos indexados por ID de KPI
+            const stats = {};
+            kpis.forEach(k => {
+                stats[k.id] = { planned: 0, real: 0 };
+            });
 
-            if (ev.status === 'pending') {
-                bodyHTML = `
-                    <div class="flex justify-between items-start gap-1">
-                        <div>
-                            <span class="flex items-center gap-1.5 font-bold text-white text-[11px] mb-0.5">
-                                <span class="w-2 h-2 rounded-full" style="background-color: ${colorCircle}"></span>
-                                ${ev.title}
+            calendarEvents.forEach(ev => {
+                totalPlannedMin += ev.plannedMinutes;
+                totalRealMin += ev.realMinutes;
+                if(stats[ev.manualKpiId]) {
+                    stats[ev.manualKpiId].planned += ev.plannedMinutes;
+                    stats[ev.manualKpiId].real += ev.realMinutes;
+                }
+            });
+
+            document.getElementById('dash-total-planned').innerText = `${(totalPlannedMin/60).toFixed(1)}h`;
+            document.getElementById('dash-total-real').innerText = `${(totalRealMin/60).toFixed(1)}h`;
+
+            const chartContainer = document.getElementById('dashboard-kpi-charts');
+            if(kpis.length === 0) {
+                chartContainer.innerHTML = `<p class="text-xs text-slate-500 italic py-2 text-center">Nenhum dado analítico disponível para computação.</p>`;
+                return;
+            }
+
+            chartContainer.innerHTML = kpis.map(k => {
+                const kpiStat = stats[k.id] || { planned: 0, real: 0 };
+                const realHours = kpiStat.real / 60;
+                const targetHours = k.target;
+                
+                // Cálculo de preenchimento relativo à meta do KPI
+                const progressPercent = targetHours > 0 ? Math.min(100, Math.round((realHours / targetHours) * 100)) : 0;
+                const palette = colorMap[k.color] || colorMap.indigo;
+
+                return `
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="font-medium text-slate-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full ${palette.bg}"></span> ${k.name}
                             </span>
-                            <span class="text-slate-500 text-[10px] block">Planejado: ${durationText}</span>
+                            <span class="font-mono text-slate-400">
+                                <strong class="${palette.text}">${realHours.toFixed(1)}h</strong> / ${targetHours.toFixed(1)}h meta
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800 flex">
+                            <div class="${palette.bg} h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                         </div>
                     </div>
+                `;
+            }).join('');
+        }
 
-                    ${!ev.colorId ? `
-                        <div class="my-2.5 p-2 bg-slate-950 rounded-xl border border-slate-800">
-                            <label class="text-[9px] text-indigo-400 font-bold block mb-1">Categorizar Evento Sem Cor:</label>
-                            <select id="manual-kpi-select-${ev.id}" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[9px] text-white">
-                                <option value="">-- Selecione um KPI --</option>
-                                ${kpis.map(k => `<option value="${k.id}">${k.name}</option>`).join('')}
-                            </select>
+        // Sub-Renderizador: Gerenciamento de KPIs
+        function renderKPIView() {
+            const listEl = document.getElementById('kpi-list');
+            if(kpis.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nenhum indicador parametrizado no LocalStorage.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = kpis.map(k => {
+                const palette = colorMap[k.color] || colorMap.indigo;
+                return `
+                    <div class="bg-slate-800/20 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full ${palette.bg} shadow-sm"></span>
+                            <div>
+                                <h4 class="text-xs font-semibold text-slate-200">${k.name}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono">Meta: ${k.target}h/semana</p>
+                            </div>
                         </div>
-                    ` : ''}
-
-                    <div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-slate-850/60">
-                        <span class="text-[10px] text-slate-400">Tempo Real Gasto:</span>
-                        <div class="flex items-center gap-2 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-                            <button type="button" onclick="adjustTime('${ev.id}', -15)" class="text-slate-400 hover:text-white font-bold px-1 text-sm">-</button>
-                            <span id="time-adjust-${ev.id}" class="text-white font-bold min-w-[50px] text-center text-[10px]">${ev.plannedMinutes} min</span>
-                            <button type="button" onclick="adjustTime('${ev.id}', 15)" class="text-slate-400 hover:text-white font-bold px-1 text-sm">+</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 mt-3">
-                        <button type="button" onclick="validateEvent('${ev.id}', true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-[10px] transition-all flex items-center justify-center gap-1">
-                            <i data-lucide="check" class="w-3.5 h-3.5"></i> Confirmar
-                        </button>
-                        <button type="button" onclick="validateEvent('${ev.id}', false)" class="bg-slate-950 hover:bg-slate-800 text-slate-400 font-bold py-1.5 rounded-lg text-[10px] border border-slate-800 transition-all">
-                            Ignorar
+                        <button onclick="window.deleteKPI('${k.id}')" class="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-rose-400 transition">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
                 `;
-            } else {
-                bodyHTML = `
-                    <div class="flex justify-between items-center">
+            }).join('');
+        }
+
+        // Sub-Renderizador: Criação e Listagem da Grade Horária (Agenda)
+        function renderAgendaView() {
+            const listEl = document.getElementById('agenda-list');
+            const filterDay = document.getElementById('agenda-filter-day').value;
+
+            // Filtra os eventos de acordo com o dia selecionado
+            const filteredEvents = calendarEvents.filter(ev => filterDay === 'Todos' || ev.day === filterDay);
+
+            if(filteredEvents.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nenhum bloco de tempo alocado para este filtro.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = filteredEvents.map(ev => {
+                const linkedKpi = kpis.find(k => k.id === ev.manualKpiId);
+                const kpiName = linkedKpi ? linkedKpi.name : 'Sem KPI';
+                const palette = linkedKpi ? colorMap[linkedKpi.color] : colorMap.indigo;
+
+                return `
+                    <div class="p-2.5 rounded-xl border ${palette.border} ${palette.fill} flex justify-between items-center">
                         <div>
-                            <span class="flex items-center gap-1.5 font-bold text-slate-400 text-[11px]">
-                                <span class="w-2 h-2 rounded-full" style="background-color: ${colorCircle}"></span>
-                                ${ev.title}
-                            </span>
-                            <span class="text-slate-500 text-[10px] block mt-0.5">Realizado: <strong class="text-emerald-400">${ev.realMinutes} min</strong></span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${palette.bg} text-slate-950">${ev.day}</span>
+                                <h4 class="text-xs font-bold text-slate-200">${ev.title}</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                                <i data-lucide="tag" class="w-2.5 h-2.5"></i> ${kpiName} • <span class="font-mono text-slate-300">${ev.plannedMinutes} min</span>
+                            </p>
                         </div>
-                        <span class="bg-emerald-500/10 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-0.5">
-                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Validado
-                        </span>
+                        <button onclick="window.deleteEvent('${ev.id}')" class="p-1.5 hover:bg-slate-800/80 rounded-lg text-slate-500 hover:text-rose-400 transition">
+                            <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 `;
-            }
-
-            card.innerHTML = bodyHTML;
-            container.appendChild(card);
-        });
-
-        lucide.createIcons();
-    }
-
-    async function adjustTime(eventId, amount) {
-        const ev = calendarEvents.find(e => e.id === eventId);
-        if (ev) {
-            const newPlanned = Math.max(0, ev.plannedMinutes + amount);
-            ev.plannedMinutes = newPlanned;
-            
-            if (db && currentUser) {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', eventId);
-                await updateDoc(docRef, { plannedMinutes: newPlanned });
-            } else {
-                saveLocalStorageFallback();
-                const textEl = document.getElementById(`time-adjust-${eventId}`);
-                if (textEl) textEl.innerText = newPlanned + " min";
-                recalculateMetrics(); 
-            }
-        }
-    }
-
-    async function validateAllAsPlanned() {
-        const todaysEvents = calendarEvents.filter(ev => ev.day === currentSelectedDay && ev.status === 'pending');
-        
-        if (todaysEvents.length === 0) {
-            alertErrorMessage("Não há eventos pendentes!");
-            return;
+            }).join('');
         }
 
-        let validatedCount = 0;
-        let skippedManualCount = 0;
-
-        for (const ev of todaysEvents) {
-            let updates = {};
-            if (ev.colorId) {
-                updates.status = 'approved';
-                updates.realMinutes = ev.plannedMinutes;
-                validatedCount++;
-            } else {
-                const selectEl = document.getElementById(`manual-kpi-select-${ev.id}`);
-                if (selectEl && selectEl.value) {
-                    updates.manualKpiId = selectEl.value;
-                    updates.status = 'approved';
-                    updates.realMinutes = ev.plannedMinutes;
-                    validatedCount++;
+        // Sub-Renderizador: Validação e Computação Diária (Auditoria)
+        function renderAuditoriaView() {
+            // Atualiza estado visual do seletor de dias da semana
+            ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'].forEach(d => {
+                const btn = document.getElementById(`day-btn-${d}`);
+                if(d === activeAuditoriaDay) {
+                    btn.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-slate-800 text-indigo-400 border border-slate-700/50 shadow";
                 } else {
-                    skippedManualCount++;
-                    continue;
+                    btn.className = "flex-1 py-1.5 text-[11px] font-medium rounded-lg text-slate-400 hover:text-slate-200 transition";
                 }
+            });
+
+            const listEl = document.getElementById('auditoria-list');
+            const dayEvents = calendarEvents.filter(ev => ev.day === activeAuditoriaDay);
+
+            if(dayEvents.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-8 px-4 border border-dashed border-slate-800 rounded-xl">
+                        <i data-lucide="calendar-days" class="w-6 h-6 text-slate-600 mx-auto mb-2"></i>
+                        <p class="text-xs text-slate-500 italic">Nenhum compromisso planejado para esta data na aba Agenda.</p>
+                    </div>`;
+                return;
             }
 
-            if (db && currentUser) {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', ev.id);
-                await updateDoc(docRef, updates);
-            } else {
-                Object.assign(ev, updates);
-            }
+            listEl.innerHTML = dayEvents.map(ev => {
+                const linkedKpi = kpis.find(k => k.id === ev.manualKpiId);
+                const palette = linkedKpi ? colorMap[linkedKpi.color] : colorMap.indigo;
+                
+                // Determinação dinâmica do status de conformidade
+                let statusBadge = '';
+                if(ev.status === 'validated') {
+                    statusBadge = `<span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="check" class="w-2.5 h-2.5"></i> Ok</span>`;
+                } else if(ev.status === 'altered') {
+                    statusBadge = `<span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-900 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="alert-circle" class="w-2.5 h-2.5"></i> Auditado</span>`;
+                } else {
+                    statusBadge = `<span class="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="clock" class="w-2.5 h-2.5"></i> Pendente</span>`;
+                }
+
+                const currentDisplayMinutes = ev.status === 'pending' ? ev.plannedMinutes : ev.realMinutes;
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 flex flex-col justify-between gap-3 shadow-inner">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-200">${ev.title}</h4>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <span class="w-1.5 h-1.5 rounded-full ${palette.bg}"></span>
+                                    <p class="text-[10px] text-slate-400">Planejado: <span class="font-mono text-slate-300">${ev.plannedMinutes}m</span></p>
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+
+                        <div class="flex items-center justify-between bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60">
+                            <span class="text-[10px] font-medium text-slate-400 pl-1">Tempo Real:</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="window.adjustTime('${ev.id}', -15)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-md text-xs font-bold transition text-slate-300">-15</button>
+                                <span class="w-16 text-center font-mono text-xs font-bold text-indigo-400">${currentDisplayMinutes}m</span>
+                                <button onclick="window.adjustTime('${ev.id}', 15)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-md text-xs font-bold transition text-slate-300">+15</button>
+                                <button onclick="window.validateEvent('${ev.id}')" class="w-7 h-7 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-900/50 rounded-md transition text-indigo-400 flex items-center justify-center ml-1" title="Validar Tempo Planejado">
+                                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        if (validatedCount > 0) { alertSuccessMessage(`${validatedCount} evento(s) confirmado(s)!`); }
-        if (skippedManualCount > 0) { alertErrorMessage(`${skippedManualCount} evento(s) sem cor precisam de classificação.`); }
+        // Encapsulamento Seguro de Escopo Global para Vinculação no HTML
+        window.switchTab = switchTab;
+        window.handleCreateKPI = handleCreateKPI;
+        window.deleteKPI = deleteKPI;
+        window.handleCreateEvent = handleCreateEvent;
+        window.deleteEvent = deleteEvent;
+        window.setAuditoriaDay = setAuditoriaDay;
+        window.adjustTime = adjustTime;
+        window.validateEvent = validateEvent;
+        window.validateAllAsPlanned = validateAllAsPlanned;
+        window.renderAgendaView = renderAgendaView;
 
-        saveLocalStorageFallback();
-        updateUI();
-    }
-
-    async function validateEvent(eventId, isApproved) {
-        const ev = calendarEvents.find(e => e.id === eventId);
-        if (ev) {
-            let updates = {};
-            if (isApproved) {
-                if (!ev.colorId) {
-                    const selectEl = document.getElementById(`manual-kpi-select-${eventId}`);
-                    if (selectEl && !selectEl.value) {
-                        alertErrorMessage("Por favor, selecione um KPI!");
-                        return;
-                    }
-                    updates.manualKpiId = selectEl.value;
-                }
-                updates.status = 'approved';
-                updates.realMinutes = ev.plannedMinutes;
-            } else {
-                updates.status = 'ignored';
-            }
-
-            if (db && currentUser) {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'events', eventId);
-                await updateDoc(docRef, updates);
-            } else {
-                Object.assign(ev, updates);
-                saveLocalStorageFallback();
-                updateUI();
-            }
-        }
-    }
-
-    function alertSuccessMessage(msg) {
-        const notification = document.createElement('div');
-        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-1.5 animate-bounce";
-        notification.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> ${msg}`;
-        document.body.appendChild(notification);
-        lucide.createIcons();
-        setTimeout(() => { notification.remove(); }, 3000);
-    }
-
-    function alertErrorMessage(msg) {
-        const notification = document.createElement('div');
-        notification.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-rose-600 text-white font-semibold text-[11px] px-4 py-2.5 rounded-full shadow-lg z-50 flex items-center gap-1.5 animate-bounce";
-        notification.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ${msg}`;
-        document.body.appendChild(notification);
-        lucide.createIcons();
-        setTimeout(() => { notification.remove(); }, 3000);
-    }
-
-    window.navigate = navigate;
-    window.changeDay = changeDay;
-    window.handleCreateKPI = handleCreateKPI;
-    window.deleteKPI = deleteKPI;
-    window.adjustTime = adjustTime;
-    window.validateAllAsPlanned = validateAllAsPlanned;
-    window.validateEvent = validateEvent;
-
-    window.onload = function() {
-        initFirebaseStorage();
-    }
-</script>
+        // Inicialização do Lifecycle da Aplicação
+        window.addEventListener('DOMContentLoaded', () => {
+            recalculateAndSyncUI();
+        });
+    </script>
 </body>
 </html>
