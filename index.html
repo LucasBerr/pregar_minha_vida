@@ -2,256 +2,732 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncLife Architecture - Time Manager</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SyncLife Advanced - Time Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Custom scrollbar para manter a estética dark minimalista */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f1f5f9;
+            user-select: none;
+        }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content.active { display: flex; flex-direction: column; height: 100%; }
+        
+        /* Utilitários de Toque e Arrastar */
+        .time-grid-slot { touch-action: none; }
+        .event-block { touch-action: none; transition: transform 0.1s ease, box-shadow 0.1s ease; }
+        .event-block.dragging { opacity: 0.6; transform: scale(0.98); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5); }
+        
+        /* Ocultar scrollbars mantendo rolagem */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex justify-center items-center p-0 sm:p-4">
+<body class="min-h-screen bg-slate-950 flex justify-center items-center p-0 sm:p-4">
 
-    <!-- Smartphone Wrapper Container -->
-    <div class="w-full max-w-md bg-slate-900 min-h-screen sm:min-h-[840px] sm:rounded-3xl sm:border sm:border-slate-800 shadow-2xl flex flex-col relative overflow-hidden">
+    <div class="w-full max-w-md bg-slate-900 h-screen sm:h-[850px] sm:rounded-[40px] sm:border-4 sm:border-slate-800 shadow-2xl flex flex-col relative overflow-hidden ring-1 ring-slate-900">
         
-        <!-- Header Principal -->
-        <header class="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 flex justify-between items-center">
+        <header class="p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 flex justify-between items-center shrink-0">
             <div>
-                <h1 class="text-sm font-bold tracking-wider text-indigo-400 flex items-center gap-1.5 uppercase">
-                    <i data-lucide="layers" class="w-4 h-4"></i> SyncLife
+                <h1 class="text-xs font-bold tracking-wider text-indigo-400 flex items-center gap-1.5 uppercase">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 animate-pulse"></i> SyncLife Core
                 </h1>
-                <p id="current-view-title" class="text-xs text-slate-400 mt-0.5">Dashboard Operacional</p>
+                <p id="current-view-title" class="text-[10px] text-slate-400 mt-0.5 font-medium">Dashboard Operacional</p>
             </div>
-            <div class="bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/50 flex items-center gap-1">
-                <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
-                <span id="header-efficiency" class="text-[11px] font-mono font-bold text-slate-200">0% Efficient</span>
+            <div class="bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800 flex items-center gap-1">
+                <i data-lucide="activity" class="w-3 h-3 text-emerald-400"></i>
+                <span id="header-efficiency" class="text-[10px] font-mono font-bold text-slate-300">0% Eficiência</span>
             </div>
         </header>
 
-        <!-- Main Workspace (Conteúdo Rolável) -->
-        <main class="flex-1 overflow-y-auto p-4 pb-24">
+        <main class="flex-1 overflow-hidden relative">
             
-            <!-- ABA 1: DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content active space-y-4">
+            <section id="tab-dashboard" class="tab-content active p-4 space-y-4 overflow-y-auto no-scrollbar">
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Planejado</span>
-                        <span id="dash-total-planned" class="text-lg font-mono font-bold text-indigo-400 mt-1">0.0h</span>
+                    <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold tracking-wider text-slate-500">Planejado (Semana)</span>
+                        <span id="dash-total-planned" class="text-base font-mono font-bold text-indigo-400 mt-1">0.0h</span>
                     </div>
-                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Executado</span>
-                        <span id="dash-total-real" class="text-lg font-mono font-bold text-emerald-400 mt-1">0.0h</span>
+                    <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <span class="text-[9px] uppercase font-bold tracking-wider text-slate-500">Executado (Semana)</span>
+                        <span id="dash-total-real" class="text-base font-mono font-bold text-emerald-400 mt-1">0.0h</span>
                     </div>
                 </div>
 
-                <!-- Gráficos Analíticos de KPIs -->
-                <div class="bg-slate-800/30 p-3.5 rounded-xl border border-slate-800/80 space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Performance Semanal por KPI
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <h3 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-400"></i> Distribuição por Alocação (KPI)
                     </h3>
-                    <div id="dashboard-kpi-charts" class="space-y-3 pt-1">
-                        <!-- Gerado Dinamicamente -->
-                    </div>
+                    <div id="dashboard-kpi-charts" class="space-y-3 pt-1"></div>
                 </div>
             </section>
 
-            <!-- ABA 2: KPIs -->
-            <section id="tab-kpis" class="tab-content space-y-4">
-                <form id="kpi-form" onsubmit="window.handleCreateKPI(event)" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Novo Indicador Operacional (KPI)</h3>
-                    <div class="space-y-2">
-                        <input type="text" id="kpi-title" placeholder="Nome do KPI (ex: Engenharia, Saúde)" required 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="kpi-target" placeholder="Meta Semanal (Horas)" required min="0.1" step="0.1"
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-mono">
-                            <select id="kpi-color" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
-                                <option value="indigo">Indigo</option>
-                                <option value="emerald">Emerald</option>
-                                <option value="amber">Amber</option>
-                                <option value="rose">Rose</option>
-                                <option value="cyan">Cyan</option>
-                                <option value="violet">Violet</option>
-                            </select>
-                        </div>
+            <section id="tab-kpis" class="tab-content p-4 space-y-4 overflow-y-auto no-scrollbar">
+                <form id="kpi-form" onsubmit="window.handleCreateKPI(event)" class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                    <span class="text-[9px] text-indigo-400 uppercase tracking-wider font-extrabold">Criar Mapeamento de KPI</span>
+                    <input type="text" id="kpi-title" placeholder="Nome do Indicador (ex: Código, Estudos)" required 
+                        class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="kpi-target" placeholder="Meta (Horas/Sem)" required min="0.5" step="0.5"
+                            class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-mono">
+                        <select id="kpi-color" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
+                            <option value="indigo">Ciano / Indigo</option>
+                            <option value="emerald">Verde / Emerald</option>
+                            <option value="amber">Amarelo / Amber</option>
+                            <option value="rose">Vermelho / Rose</option>
+                            <option value="cyan">Azul Claro / Cyan</option>
+                            <option value="violet">Roxo / Violet</option>
+                        </select>
                     </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Indicador
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Adicionar Métrica
                     </button>
                 </form>
 
                 <div class="space-y-2">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">KPIs Cadastrados</h3>
-                    <div id="kpi-list" class="space-y-2">
-                        <!-- Gerado Dinamicamente -->
+                    <h3 class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Métricas Ativas</h3>
+                    <div id="kpi-list" class="space-y-2"></div>
+                </div>
+            </section>
+
+            <section id="tab-agenda" class="tab-content overflow-hidden flex flex-col">
+                
+                <div id="horizon-navigator" class="flex gap-1.5 overflow-x-auto px-4 py-2.5 bg-slate-950 border-b border-slate-800/80 no-scrollbar shrink-0 select-none">
+                    </div>
+
+                <div class="px-4 py-2 bg-slate-900/60 border-b border-slate-800/60 flex justify-between items-center shrink-0">
+                    <span id="agenda-current-date-label" class="text-[10px] font-bold text-slate-300 font-mono">--/--/----</span>
+                    
+                    <div class="bg-slate-950 p-0.5 rounded-lg border border-slate-800 flex">
+                        <button onclick="window.setAgendaViewMode('day')" id="view-mode-day" class="text-[9px] font-bold px-2.5 py-1 rounded-md bg-indigo-600 text-white transition-all">Dia</button>
+                        <button onclick="window.setAgendaViewMode('week')" id="view-mode-week" class="text-[9px] font-bold px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all">Semana</button>
+                    </div>
+                </div>
+
+                <div id="timeline-scroll-container" class="flex-1 overflow-y-auto bg-slate-950/20 relative select-none">
+                    
+                    <div id="timeline-wrapper" class="flex min-w-full relative h-[1200px]">
+                        
+                        <div id="time-axis-labels" class="w-12 bg-slate-950/60 border-r border-slate-800/50 flex flex-col h-full sticky left-0 z-20 select-none">
+                            </div>
+
+                        <div id="grid-columns-container" class="flex-1 flex h-full relative overflow-x-auto no-scrollbar">
+                            </div>
+
                     </div>
                 </div>
             </section>
 
-            <!-- ABA 3: AGENDA (CRONOGRAMA SEMANAL) -->
-            <section id="tab-agenda" class="tab-content space-y-4">
-                <form id="agenda-form" onsubmit="window.handleCreateEvent(event)" class="bg-slate-800/40 p-3.5 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Alocar Bloco de Tempo</h3>
-                    <div class="space-y-2">
-                        <input type="text" id="event-title" placeholder="Nome da Atividade" required 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="event-day" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
-                                <option value="Segunda">Segunda-feira</option>
-                                <option value="Terça">Terça-feira</option>
-                                <option value="Quarta">Quarta-feira</option>
-                                <option value="Quinta">Quinta-feira</option>
-                                <option value="Sexta">Sexta-feira</option>
-                            </select>
-                            <input type="number" id="event-duration" placeholder="Duração (Minutos)" required min="5"
-                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-mono">
-                        </div>
-                        <select id="event-kpi-link" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200">
-                            <!-- Injetado via JS de acordo com os KPIs existentes -->
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1">
-                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Agendar Atividade
-                    </button>
-                </form>
-
-                <!-- Visualização e Filtro de Agenda Semanal -->
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Grade Semanal</h3>
-                        <select id="agenda-filter-day" onchange="window.renderAgendaView()" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none">
-                            <option value="Todos">Ver Semana Toda</option>
-                            <option value="Segunda">Segunda</option>
-                            <option value="Terça">Terça</option>
-                            <option value="Quarta">Quarta</option>
-                            <option value="Quinta">Quinta</option>
-                            <option value="Sexta">Sexta</option>
-                        </select>
-                    </div>
-                    <div id="agenda-list" class="space-y-2">
-                        <!-- Gerado Dinamicamente -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- ABA 4: AUDITORIA OPERACIONAL -->
-            <section id="tab-auditoria" class="tab-content space-y-4">
-                <!-- Seletor Rápido de Dias Úteis -->
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 justify-between items-center text-center">
-                    <button onclick="window.setAuditoriaDay('Segunda')" id="day-btn-Segunda" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Seg</button>
-                    <button onclick="window.setAuditoriaDay('Terça')" id="day-btn-Terça" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Ter</button>
-                    <button onclick="window.setAuditoriaDay('Quarta')" id="day-btn-Quarta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Qua</button>
-                    <button onclick="window.setAuditoriaDay('Quinta')" id="day-btn-Quinta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Qui</button>
-                    <button onclick="window.setAuditoriaDay('Sexta')" id="day-btn-Sexta" class="flex-1 py-1.5 text-[11px] font-medium rounded-lg transition text-slate-400">Sex</button>
-                </div>
-
+            <section id="tab-auditoria" class="tab-content p-4 space-y-4 overflow-y-auto no-scrollbar">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-indigo-400"></i> Blocos Planejados para o Dia
-                    </h3>
-                    <button onclick="window.validateAllAsPlanned()" class="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/40">
-                        <i data-lucide="check-check" class="w-3 h-3"></i> Validar Tudo
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Auditoria Diária</h3>
+                        <p class="text-[10px] text-slate-500 font-medium">Valide as horas para consolidar no Dashboard.</p>
+                    </div>
+                    <button onclick="window.validateAllAsPlanned()" class="text-[9px] font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-950/40 px-2.5 py-1.5 rounded-xl border border-indigo-900/50 flex items-center gap-1">
+                        <i data-lucide="check-check" class="w-3 h-3"></i> Validar Dia
                     </button>
                 </div>
-
-                <!-- Lista de Cards para Ajuste de Tempo -->
-                <div id="auditoria-list" class="space-y-2">
-                    <!-- Gerado Dinamicamente -->
-                </div>
+                <div id="auditoria-list" class="space-y-2.5"></div>
             </section>
 
         </main>
 
-        <!-- Barra de Navegação Inferior Fixa (Estilo Mobile Dock) -->
-        <nav class="absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 grid grid-cols-4 py-2.5 px-2 backdrop-blur z-50">
+        <div id="event-creation-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 w-full rounded-3xl p-4 space-y-3 shadow-2xl max-w-xs transform scale-95 transition-transform duration-200">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] uppercase font-extrabold tracking-wider text-indigo-400">Novo Bloco de Tempo</span>
+                    <button onclick="window.closeEventModal()" class="text-slate-400 hover:text-slate-200 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[10px] font-mono space-y-0.5 text-slate-400">
+                    <p>Dia: <span id="modal-lbl-date" class="text-slate-200 font-bold">--</span></p>
+                    <p>Intervalo: <span id="modal-lbl-time" class="text-indigo-400 font-bold">00:00 - 00:00</span></p>
+                </div>
+                <div class="space-y-2">
+                    <input type="text" id="modal-input-title" placeholder="Título da Atividade" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <select id="modal-select-kpi" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"></select>
+                </div>
+                <button onclick="window.saveDrawnEvent()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirmar Alocação
+                </button>
+            </div>
+        </div>
+
+        <nav class="bg-slate-900/95 border-t border-slate-800 grid grid-cols-4 py-2.5 px-2 backdrop-blur shrink-0 z-40">
             <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-indigo-500 transition">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="text-[10px] font-medium">Dashboard</span>
+                <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i>
+                <span class="text-[9px] font-bold">Dashboard</span>
             </button>
-            <button onclick="window.switchTab('kpis')" id="nav-kpis" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-                <i data-lucide="target" class="w-5 h-5"></i>
-                <span class="text-[10px] font-medium">KPIs</span>
+            <button onclick="window.switchTab('kpis')" id="nav-kpis" class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-200 transition">
+                <i data-lucide="target" class="w-4.5 h-4.5"></i>
+                <span class="text-[9px] font-bold">KPIs</span>
             </button>
-            <button onclick="window.switchTab('agenda')" id="nav-agenda" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-                <i data-lucide="calendar" class="w-5 h-5"></i>
-                <span class="text-[10px] font-medium">Agenda</span>
+            <button onclick="window.switchTab('agenda')" id="nav-agenda" class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-200 transition">
+                <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+                <span class="text-[9px] font-bold">Agenda</span>
             </button>
-            <button onclick="window.switchTab('auditoria')" id="nav-auditoria" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
-                <i data-lucide="sliders" class="w-5 h-5"></i>
-                <span class="text-[10px] font-medium">Auditoria</span>
+            <button onclick="window.switchTab('auditoria')" id="nav-auditoria" class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-200 transition">
+                <i data-lucide="sliders" class="w-4.5 h-4.5"></i>
+                <span class="text-[9px] font-bold">Auditoria</span>
             </button>
         </nav>
     </div>
 
-    <!-- Módulo Central de Dados e Lógica Computacional -->
     <script type="module">
-        // Variáveis Globais de Estado
-        let kpis = JSON.parse(localStorage.getItem('SL_KPIS')) || [];
-        let calendarEvents = JSON.parse(localStorage.getItem('SL_EVENTS')) || [];
-        let activeTab = 'dashboard';
-        let activeAuditoriaDay = 'Segunda';
-
-        // Mapeamento de variantes de cores Tailwind seguras contra purga do compilador
+        // Estrutura de Cores Isoladas contra Purga Dinâmica do Tailwind
         const colorMap = {
-            indigo: { bg: 'bg-indigo-500', text: 'text-indigo-400', border: 'border-indigo-500/20', raw: '#6366f1', fill: 'bg-indigo-950/30' },
-            emerald: { bg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/20', raw: '#10b981', fill: 'bg-emerald-950/30' },
-            amber: { bg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/20', raw: '#f59e0b', fill: 'bg-amber-950/30' },
-            rose: { bg: 'bg-rose-500', text: 'text-rose-400', border: 'border-rose-500/20', raw: '#f43f5e', fill: 'bg-rose-950/30' },
-            cyan: { bg: 'bg-cyan-500', text: 'text-cyan-400', border: 'border-cyan-500/20', raw: '#06b6d4', fill: 'bg-cyan-950/30' },
-            violet: { bg: 'bg-violet-500', text: 'text-violet-400', border: 'border-violet-500/20', raw: '#8b5cf6', fill: 'bg-violet-950/30' }
+            indigo: { bg: 'bg-indigo-500', text: 'text-indigo-400', border: 'border-indigo-500/20', raw: '#6366f1', fill: 'bg-indigo-950/20', borderRaw: 'rgba(99,102,241,0.4)' },
+            emerald: { bg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/20', raw: '#10b981', fill: 'bg-emerald-950/20', borderRaw: 'rgba(16,185,129,0.4)' },
+            amber: { bg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/20', raw: '#f59e0b', fill: 'bg-amber-950/20', borderRaw: 'rgba(245,158,11,0.4)' },
+            rose: { bg: 'bg-rose-500', text: 'text-rose-400', border: 'border-rose-500/20', raw: '#f43f5e', fill: 'bg-rose-950/20', borderRaw: 'rgba(244,63,94,0.4)' },
+            cyan: { bg: 'bg-cyan-500', text: 'text-cyan-400', border: 'border-cyan-500/20', raw: '#06b6d4', fill: 'bg-cyan-950/20', borderRaw: 'rgba(6,182,212,0.4)' },
+            violet: { bg: 'bg-violet-500', text: 'text-violet-400', border: 'border-violet-500/20', raw: '#8b5cf6', fill: 'bg-violet-950/20', borderRaw: 'rgba(139,92,246,0.4)' }
         };
 
-        // Persistência Atômica de Estado
+        // Estado da Aplicação em Conformidade Estrutural
+        let kpis = JSON.parse(localStorage.getItem('SL_KPIS_V2')) || [
+            { id: 'kpi_default_1', name: 'Engenharia de Software', target: 15, color: 'indigo' },
+            { id: 'kpi_default_2', name: 'Auditoria & Métricas', target: 5, color: 'emerald' }
+        ];
+        
+        // Estrutura Base de Eventos baseada em Datas Precisas no Padrão ISO Strings Locais
+        let calendarEvents = JSON.parse(localStorage.getItem('SL_EVENTS_V2')) || [];
+        
+        let activeTab = 'dashboard';
+        let agendaViewMode = 'day'; // 'day' ou 'week'
+        
+        // Inicializa a data operacional travada na data local sem distorção
+        const todayStr = new Date().toISOString().split('T')[0];
+        let agendaSelectedDate = todayStr; 
+
+        // Constantes Geométricas de Renderização da Linha do Tempo (Mapeamento de Pixel)
+        const SLOT_HEIGHT = 50; // Cada hora possui 50px de altura vertical fixa
+
+        // Variáveis de Controle do Estado de Desenho/Arrastar do Usuário
+        let isDrawing = false;
+        let drawStartSlot = null;
+        let drawColumnDate = null;
+        let ghostBlockElement = null;
+        let draggedEventId = null;
+        let isResizing = false;
+        let resizeStartOffset = 0;
+        let resizeStartHeight = 0;
+
+        // Persistência Atômica das Coleções locais
         function saveStateToStorage() {
-            localStorage.setItem('SL_KPIS', JSON.stringify(kpis));
-            localStorage.setItem('SL_EVENTS', JSON.stringify(calendarEvents));
+            localStorage.setItem('SL_KPIS_V2', JSON.stringify(kpis));
+            localStorage.setItem('SL_EVENTS_V2', JSON.stringify(calendarEvents));
         }
 
-        // Engine de Renderização e Chaveamento de Abas
+        // Navegador entre Abas
         function switchTab(tabId) {
             activeTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
 
-            // Atualização dos botões da Bottom Bar
+            // Atualização Visual do Menu Inferior
             ['dashboard', 'kpis', 'agenda', 'auditoria'].forEach(t => {
                 const navBtn = document.getElementById(`nav-${t}`);
                 if(t === tabId) {
-                    navBtn.className = "flex flex-col items-center gap-1 text-indigo-500 transition";
+                    navBtn.className = "flex flex-col items-center gap-1 text-indigo-500 transition-all scale-105";
                 } else {
-                    navBtn.className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+                    navBtn.className = "flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-all";
                 }
             });
 
-            // Títulos e triggers contextuais de renderização
-            const titles = { dashboard: "Dashboard Operacional", kpis: "Indicadores Estratégicos", agenda: "Cronograma de Rotina", auditoria: "Auditoria de Atividades" };
+            const titles = { dashboard: "Dashboard Operacional", kpis: "Indicadores de Alta Performance", agenda: "Time-Blocked Calendar System", auditoria: "Auditoria Operacional Diária" };
             document.getElementById('current-view-title').innerText = titles[tabId];
 
-            if(tabId === 'agenda') updateKpiDropdownOptions();
-            
+            if(tabId === 'agenda') {
+                setTimeout(() => {
+                    centerHorizonToSelectedDay();
+                    scrollToVisibleViewport();
+                }, 50);
+            }
+
             recalculateAndSyncUI();
         }
 
-        // Atualiza dinamicamente o select de vínculo na criação de eventos da agenda
-        function updateKpiDropdownOptions() {
-            const selectEl = document.getElementById('event-kpi-link');
-            if(!selectEl) return;
-            if(kpis.length === 0) {
-                selectEl.innerHTML = '<option value="">Nenhum KPI cadastrado. Crie um primeiro!</option>';
-                return;
+        // Engine de Mutação de Visão da Agenda (Dia/Semana)
+        function setAgendaViewMode(mode) {
+            agendaViewMode = mode;
+            const dayBtn = document.getElementById('view-mode-day');
+            const weekBtn = document.getElementById('view-mode-week');
+            
+            if(mode === 'day') {
+                dayBtn.className = "text-[9px] font-bold px-2.5 py-1 rounded-md bg-indigo-600 text-white transition-all";
+                weekBtn.className = "text-[9px] font-bold px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all";
+            } else {
+                weekBtn.className = "text-[9px] font-bold px-2.5 py-1 rounded-md bg-indigo-600 text-white transition-all";
+                dayBtn.className = "text-[9px] font-bold px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all";
             }
-            selectEl.innerHTML = kpis.map(k => `<option value="${k.id}">${k.name} (Meta: ${k.target}h)</option>`).join('');
+            renderAgendaView();
         }
 
-        // CRUD: Criação de Indicadores Estratégicos (KPIs)
+        // Construtor e Inicializador de Linha do Tempo e Grade do Horizonte Temporal (1 Ano)
+        function buildHorizonNavigator() {
+            const navigatorEl = document.getElementById('horizon-navigator');
+            navigatorEl.innerHTML = '';
+
+            const baseDate = new Date();
+            // Gera um espectro de 6 meses passados até 6 meses futuros (Janela de 365 Dias Contínuos)
+            baseDate.setMonth(baseDate.getMonth() - 6);
+
+            const monthsPt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+            for (let i = 0; i < 365; i++) {
+                const currentLoopDate = new Date(baseDate);
+                currentLoopDate.setDate(baseDate.getDate() + i);
+                const currentLoopStr = currentLoopDate.toISOString().split('T')[0];
+
+                const dayCard = document.createElement('button');
+                dayCard.id = `horizon-card-${currentLoopStr}`;
+                dayCard.dataset.date = currentLoopStr;
+                
+                // Mapeamento Estético de Destaque para o Dia Selecionado ou Corrente
+                const isSelected = currentLoopStr === agendaSelectedDate;
+                const isToday = currentLoopStr === todayStr;
+
+                dayCard.className = `flex flex-col items-center justify-center p-2 rounded-xl min-w-[42px] h-[52px] transition-all border shrink-0 ${
+                    isSelected ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20 scale-105 font-bold' : 
+                    isToday ? 'bg-slate-950 border-indigo-500/40 text-indigo-400 font-bold' : 'bg-slate-950 border-slate-800 text-slate-400'
+                }`;
+
+                dayCard.innerHTML = `
+                    <span class="text-xs tracking-tight font-mono">${currentLoopDate.getDate()}</span>
+                    <span class="text-[8px] uppercase tracking-wide opacity-80 mt-0.5">${monthsPt[currentLoopDate.getMonth()]}</span>
+                `;
+
+                dayCard.addEventListener('click', () => {
+                    agendaSelectedDate = currentLoopStr;
+                    // Sincroniza abas dependentes para manter coerência atômica de data
+                    buildHorizonNavigator();
+                    centerHorizonToSelectedDay();
+                    recalculateAndSyncUI();
+                });
+
+                navigatorEl.appendChild(dayCard);
+            }
+        }
+
+        function centerHorizonToSelectedDay() {
+            const activeCard = document.getElementById(`horizon-card-${agendaSelectedDate}`);
+            const container = document.getElementById('horizon-navigator');
+            if (activeCard && container) {
+                const containerHalfWidth = container.offsetWidth / 2;
+                const cardOffsetLeft = activeCard.offsetLeft;
+                const cardHalfWidth = activeCard.offsetWidth / 2;
+                container.scrollTo({ left: cardOffsetLeft - containerHalfWidth + cardHalfWidth, behavior: 'smooth' });
+            }
+        }
+
+        function scrollToVisibleViewport() {
+            const scrollContainer = document.getElementById('timeline-scroll-container');
+            if(scrollContainer) {
+                // Posiciona a viewport focando no bloco produtivo (00:00 - 08:00 visível sem scroll imediato)
+                scrollContainer.scrollTop = 0;
+            }
+        }
+
+        // Construtor do Eixo Temporal Esquerdo (00:00 às 24:00)
+        function buildTimeAxisLabels() {
+            const axisEl = document.getElementById('time-axis-labels');
+            axisEl.innerHTML = '';
+            for(let hour = 0; hour <= 24; hour++) {
+                const label = document.createElement('div');
+                label.className = "text-[9px] text-slate-500 font-mono text-right pr-2 select-none pointer-events-none flex items-start justify-end";
+                label.style.height = `${SLOT_HEIGHT}px`;
+                label.style.paddingTop = "2px";
+                label.innerText = hour === 24 ? "24:00" : `${String(hour).padStart(2, '0')}:00`;
+                axisEl.appendChild(label);
+            }
+        }
+
+        // ALGORITMO CHAVE: Renderização de Grade e Posicionamento Geométrico Absoluto de Blocos
+        function renderAgendaView() {
+            const columnsContainer = document.getElementById('grid-columns-container');
+            columnsContainer.innerHTML = '';
+
+            const current = new Date(agendaSelectedDate + 'T12:00:00');
+            const dayOfWeek = current.getDay(); // 0 = Domingo, 1 = Segunda...
+            const diffToMonday = current.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+            
+            const mondayDateObj = new Date(current.setDate(diffToMonday));
+            
+            const daysToRender = [];
+            
+            if (agendaViewMode === 'day') {
+                daysToRender.push(agendaSelectedDate);
+                document.getElementById('agenda-current-date-label').innerText = formatDateToPt(agendaSelectedDate);
+            } else {
+                // Configuração da visão semanal de 7 dias (Segunda a Domingo)
+                for(let i = 0; i < 7; i++) {
+                    const d = new Date(mondayDateObj);
+                    d.setDate(mondayDateObj.getDate() + i);
+                    daysToRender.push(d.toISOString().split('T')[0]);
+                }
+                const sundayDateObj = new Date(mondayDateObj);
+                sundayDateObj.setDate(mondayDateObj.getDate() + 6);
+                document.getElementById('agenda-current-date-label').innerText = `${mondayDateObj.getDate()}/${mondayDateObj.getMonth()+1} até ${sundayDateObj.getDate()}/${sundayDateObj.getMonth()+1}`;
+            }
+
+            // Define largura proporcional dinamicamente dependendo do wrapper
+            const colWidthClass = agendaViewMode === 'day' ? 'min-w-full' : 'min-w-[120px] flex-1';
+
+            daysToRender.forEach(dateStr => {
+                const dayColumn = document.createElement('div');
+                dayColumn.className = `h-full relative border-r border-slate-800/40 ${colWidthClass} bg-slate-900/10 time-column select-none`;
+                dayColumn.dataset.date = dateStr;
+
+                // Desenha as linhas horizontais guias internas da coluna por hora
+                for(let h = 0; h < 24; h++) {
+                    const line = document.createElement('div');
+                    line.className = "absolute left-0 right-0 border-b border-slate-800/30 pointer-events-none select-none time-grid-slot";
+                    line.style.top = `${h * SLOT_HEIGHT}px`;
+                    line.style.height = `${SLOT_HEIGHT}px`;
+                    dayColumn.appendChild(line);
+                }
+
+                // Vinculação de Eventos Mouse/Touch para Criação Baseada em Desenho Direto
+                dayColumn.addEventListener('mousedown', (e) => handleGridMouseDown(e, dayColumn, dateStr));
+                dayColumn.addEventListener('touchstart', (e) => handleGridTouchStart(e, dayColumn, dateStr), { passive: false });
+
+                // Filtra e Renderiza todos os eventos correspondentes a esta data na coluna
+                const columnEvents = calendarEvents.filter(ev => ev.date === dateStr);
+                
+                columnEvents.forEach(ev => {
+                    const block = createVisualEventBlock(ev);
+                    dayColumn.appendChild(block);
+                });
+
+                columnsContainer.appendChild(dayColumn);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Helper de Formatação Regional
+        function formatDateToPt(dateStr) {
+            const parts = dateStr.split('-');
+            const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+            const d = new Date(dateStr + 'T12:00:00');
+            return `${diasSemana[d.getDay()]}, ${parts[2]}/${parts[1]}`;
+        }
+
+        // Construtor Visual de Blocos Geométricos Absolutos com Drag-and-Drop Nativo
+        function createVisualEventBlock(ev) {
+            const linkedKpi = kpis.find(k => k.id === ev.manualKpiId);
+            const palette = linkedKpi ? colorMap[linkedKpi.color] : colorMap.indigo;
+
+            const startMin = timeStringToMinutes(ev.startTime);
+            const endMin = timeStringToMinutes(ev.endTime);
+            const durationMin = endMin - startMin;
+
+            // Algoritmo de Mapeamento Geométrico: Converte Minutos do Dia em Posição de Pixel
+            const topPx = (startMin / 60) * SLOT_HEIGHT;
+            const heightPx = (durationMin / 60) * SLOT_HEIGHT;
+
+            const block = document.createElement('div');
+            block.className = `absolute left-1 right-1 rounded-xl p-2 border ${palette.border} ${palette.fill} text-slate-100 flex flex-col justify-between overflow-hidden event-block select-none group`;
+            block.style.top = `${topPx}px`;
+            block.style.height = `${heightPx}px`;
+            block.id = `visual-block-${ev.id}`;
+            block.draggable = true;
+
+            block.innerHTML = `
+                <div class="pointer-events-none">
+                    <h5 class="text-[10px] font-extrabold leading-tight truncate text-slate-100">${ev.title}</h5>
+                    <p class="text-[8px] text-slate-400 font-mono mt-0.5">${ev.startTime} - ${ev.endTime}</p>
+                </div>
+                <div class="flex justify-between items-center mt-1 pointer-events-none shrink-0">
+                    <span class="text-[8px] font-mono font-bold bg-slate-950/60 px-1.5 py-0.5 rounded text-slate-300 border border-slate-800">${durationMin}m</span>
+                    <span class="text-[8px] font-medium opacity-90 truncate max-w-[50px] ${palette.text}">${linkedKpi ? linkedKpi.name : 'Geral'}</span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-2 bg-slate-950/20 hover:bg-indigo-500/40 cursor-ns-resize transition-all rounded-b-xl flex items-center justify-center opacity-0 group-hover:opacity-100 resize-handle-trigger">
+                    <div class="w-6 h-0.5 bg-slate-500 rounded-full"></div>
+                </div>
+            `;
+
+            // Tratamento das Rotinas de Drag-and-Drop Nativo do HTML5
+            block.addEventListener('dragstart', (e) => {
+                draggedEventId = ev.id;
+                block.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', ev.id);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            block.addEventListener('dragend', () => {
+                block.classList.remove('dragging');
+                draggedEventId = null;
+            });
+
+            // Gerenciador de Redimensionamento via Mouse / Toque na base do bloco
+            const handle = block.querySelector('.resize-handle-trigger');
+            handle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                initiateResize(e, ev, block);
+            });
+            handle.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                initiateResize(e.touches[0], ev, block);
+            }, { passive: false });
+
+            return block;
+        }
+
+        // Motores de Processamento e Captura de Movimento na Grade
+        function handleGridMouseDown(e, columnEl, dateStr) {
+            if (e.target.closest('.event-block') || isResizing) return;
+            isDrawing = true;
+            drawColumnDate = dateStr;
+            const rect = columnEl.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            drawStartSlot = Math.floor(y / (SLOT_HEIGHT / 4)) * (SLOT_HEIGHT / 4); // Trava em intervalos de 15 minutos
+
+            createGhostBlock(columnEl, drawStartSlot);
+
+            const onMouseMove = (moveEvent) => {
+                if (!isDrawing) return;
+                const currentY = moveEvent.clientY - rect.top;
+                updateGhostBlock(currentY);
+            };
+
+            const onMouseUp = () => {
+                if (isDrawing) {
+                    isDrawing = false;
+                    finalizeDrawnEvent();
+                }
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+            };
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        }
+
+        function handleGridTouchStart(e, columnEl, dateStr) {
+            if (e.target.closest('.event-block') || isResizing) return;
+            isDrawing = true;
+            drawColumnDate = dateStr;
+            const rect = columnEl.getBoundingClientRect();
+            const touch = e.touches[0];
+            const y = touch.clientY - rect.top;
+            drawStartSlot = Math.floor(y / (SLOT_HEIGHT / 4)) * (SLOT_HEIGHT / 4);
+
+            createGhostBlock(columnEl, drawStartSlot);
+
+            const onTouchMove = (moveEvent) => {
+                if (!isDrawing) return;
+                const currentY = moveEvent.touches[0].clientY - rect.top;
+                updateGhostBlock(currentY);
+            };
+
+            const onTouchEnd = () => {
+                if (isDrawing) {
+                    isDrawing = false;
+                    finalizeDrawnEvent();
+                }
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+            };
+
+            window.addEventListener('touchmove', onTouchMove);
+            window.addEventListener('touchend', onTouchEnd);
+        }
+
+        // Gerenciamento do Objeto Fantasma (Visual Feedback) de Arrastar/Desenhar
+        function createGhostBlock(parent, top) {
+            ghostBlockElement = document.createElement('div');
+            ghostBlockElement.className = "absolute left-1 right-1 bg-indigo-500/30 border-2 border-indigo-500 border-dashed rounded-xl pointer-events-none z-10";
+            ghostBlockElement.style.top = `${top}px`;
+            ghostBlockElement.style.height = `${SLOT_HEIGHT / 4}px`; // Tamanho inicial mínimo de 15 min
+            parent.appendChild(ghostBlockElement);
+        }
+
+        function updateGhostBlock(currentY) {
+            if (!ghostBlockElement) return;
+            let targetHeight = currentY - drawStartSlot;
+            // Garante tamanho mínimo de 15 minutos se o arrastar for reverso
+            if (targetHeight < SLOT_HEIGHT / 4) targetHeight = SLOT_HEIGHT / 4; 
+            
+            // Força o encaixe geométrico magnético em passos de 15 minutos (12.5px)
+            const steppedHeight = Math.ceil(targetHeight / (SLOT_HEIGHT / 4)) * (SLOT_HEIGHT / 4);
+            ghostBlockElement.style.height = `${steppedHeight}px`;
+        }
+
+        function finalizeDrawnEvent() {
+            if (!ghostBlockElement) return;
+            const top = parseFloat(ghostBlockElement.style.top);
+            const height = parseFloat(ghostBlockElement.style.height);
+            ghostBlockElement.remove();
+            ghostBlockElement = null;
+
+            const startMinutes = (top / SLOT_HEIGHT) * 60;
+            const durationMinutes = (height / SLOT_HEIGHT) * 60;
+            const endMinutes = startMinutes + durationMinutes;
+
+            if (endMinutes > 1440) return; // Fora do limite diário
+
+            openEventCreationModal(drawColumnDate, startMinutes, endMinutes);
+        }
+
+        // Fluxo de Resizing Nativo (Gerenciador de Estado por Delta de Altura)
+        function initiateResize(interactionObject, ev, blockElement) {
+            isResizing = true;
+            resizeStartOffset = interactionObject.clientY;
+            resizeStartHeight = blockElement.offsetHeight;
+
+            const onMove = (e) => {
+                if (!isResizing) return;
+                const clientY = e.clientY || e.touches[0].clientY;
+                const deltaY = clientY - resizeStartOffset;
+                let newHeight = resizeStartHeight + deltaY;
+                
+                // Força trava do Grid Magnético de 15 minutos
+                newHeight = Math.max(SLOT_HEIGHT / 4, Math.round(newHeight / (SLOT_HEIGHT / 4)) * (SLOT_HEIGHT / 4));
+                blockElement.style.height = `${newHeight}px`;
+                
+                // Feedback de tempo real no rótulo interno do card
+                const startMin = timeStringToMinutes(ev.startTime);
+                const currentDuration = (newHeight / SLOT_HEIGHT) * 60;
+                const currentEndMin = startMin + currentDuration;
+                
+                if (currentEndMin <= 1440) {
+                    const tempEndTimeStr = minutesToTimeString(currentEndMin);
+                    const timeLabel = blockElement.querySelector('p');
+                    if (timeLabel) timeLabel.innerText = `${ev.startTime} - ${tempEndTimeStr}`;
+                }
+            };
+
+            const onEnd = () => {
+                if (isResizing) {
+                    isResizing = false;
+                    const finalHeight = blockElement.offsetHeight;
+                    const startMin = timeStringToMinutes(ev.startTime);
+                    const finalDuration = (finalHeight / SLOT_HEIGHT) * 60;
+                    const finalEndMin = Math.min(1440, startMin + finalDuration);
+                    
+                    ev.endTime = minutesToTimeString(finalEndMin);
+                    ev.plannedMinutes = finalEndMin - startMin;
+                    
+                    if(ev.status === 'validated' || ev.status === 'altered') {
+                        ev.realMinutes = ev.plannedMinutes; // Ajuste automático se já auditado
+                    }
+
+                    saveStateToStorage();
+                    recalculateAndSyncUI();
+                }
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onEnd);
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onEnd);
+            };
+
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('touchend', onEnd);
+        }
+
+        // Engine de Tratamento do Drag & Drop Nativo para Movimentação entre Colunas/Horários
+        document.getElementById('grid-columns-container').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        document.getElementById('grid-columns-container').addEventListener('drop', (e) => {
+            e.preventDefault();
+            const eventId = e.dataTransfer.getData('text/plain');
+            const targetColumn = e.target.closest('.time-column');
+            if (!targetColumn || !eventId) return;
+
+            const targetDate = targetColumn.dataset.date;
+            const rect = targetColumn.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            
+            // Ajusta o drop travando no Slot Magnético de 15 minutos
+            const steppedY = Math.floor(y / (SLOT_HEIGHT / 4)) * (SLOT_HEIGHT / 4);
+            const newStartMin = (steppedY / SLOT_HEIGHT) * 60;
+
+            const ev = calendarEvents.find(event => event.id === eventId);
+            if (ev) {
+                const duration = timeStringToMinutes(ev.endTime) - timeStringToMinutes(ev.startTime);
+                const newEndMin = newStartMin + duration;
+
+                if (newEndMin <= 1440) {
+                    ev.date = targetDate;
+                    ev.startTime = minutesToTimeString(newStartMin);
+                    ev.endTime = minutesToTimeString(newEndMin);
+                    
+                    saveStateToStorage();
+                    recalculateAndSyncUI();
+                }
+            }
+        });
+
+        // Orquestrador do Ciclo do Modal de Confirmação e Vinculação de KPIs
+        let modalActiveData = null;
+
+        function openEventCreationModal(dateStr, startMin, endMin) {
+            modalActiveData = { dateStr, startMin, endMin };
+            
+            document.getElementById('modal-lbl-date').innerText = formatDateToPt(dateStr);
+            document.getElementById('modal-lbl-time').innerText = `${minutesToTimeString(startMin)} - ${minutesToTimeString(endMin)}`;
+            
+            const kpiSelect = document.getElementById('modal-select-kpi');
+            kpiSelect.innerHTML = kpis.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
+            if(kpis.length === 0) kpiSelect.innerHTML = '<option value="">Sem KPI Cadastrado</option>';
+
+            const modal = document.getElementById('event-creation-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.querySelector('.scale-95').classList.remove('scale-95'), 10);
+            document.getElementById('modal-input-title').focus();
+        }
+
+        function closeEventModal() {
+            const modal = document.getElementById('event-creation-modal');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 150);
+            document.getElementById('modal-input-title').value = '';
+            modalActiveData = null;
+        }
+
+        function saveDrawnEvent() {
+            const title = document.getElementById('modal-input-title').value.trim();
+            const kpiId = document.getElementById('modal-select-kpi').value;
+
+            if(!title) return;
+
+            const newEvent = {
+                id: 'ev_' + Date.now(),
+                date: modalActiveData.dateStr,
+                title: title,
+                startTime: minutesToTimeString(modalActiveData.startMin),
+                endTime: minutesToTimeString(modalActiveData.endMin),
+                plannedMinutes: modalActiveData.endMin - modalActiveData.startMin,
+                realMinutes: 0,
+                status: 'pending',
+                manualKpiId: kpiId
+            };
+
+            calendarEvents.push(newEvent);
+            saveStateToStorage();
+            closeEventModal();
+            recalculateAndSyncUI();
+        }
+
+        // CRUD: Gerenciador de Criação de KPIs
         function handleCreateKPI(e) {
             e.preventDefault();
             const name = document.getElementById('kpi-title').value.trim();
@@ -270,61 +746,18 @@
 
         function deleteKPI(kpiId) {
             kpis = kpis.filter(k => k.id !== kpiId);
-            // Cascateamento preventivo: desvincula eventos órfãos
+            // Cascateamento Atômico: Remove eventos órfãos vinculados
             calendarEvents = calendarEvents.filter(ev => ev.manualKpiId !== kpiId);
             saveStateToStorage();
             recalculateAndSyncUI();
         }
 
-        // CRUD: Alocação de Blocos de Tempo Semanais (Agenda)
-        function handleCreateEvent(e) {
-            e.preventDefault();
-            const title = document.getElementById('event-title').value.trim();
-            const day = document.getElementById('event-day').value;
-            const duration = parseInt(document.getElementById('event-duration').value);
-            const kpiId = document.getElementById('event-kpi-link').value;
-
-            if(!title || isNaN(duration) || !kpiId) return;
-
-            const newEvent = {
-                id: 'ev_' + Date.now(),
-                day,
-                title,
-                plannedMinutes: duration,
-                realMinutes: 0,
-                status: 'pending', // pending, validated, altered
-                manualKpiId: kpiId
-            };
-
-            calendarEvents.push(newEvent);
-            saveStateToStorage();
-
-            document.getElementById('agenda-form').reset();
-            updateKpiDropdownOptions();
-            recalculateAndSyncUI();
-        }
-
-        function deleteEvent(eventId) {
-            calendarEvents = calendarEvents.filter(ev => ev.id !== eventId);
-            saveStateToStorage();
-            recalculateAndSyncUI();
-        }
-
-        // Núcleo de Controle da Aba de Auditoria
-        function setAuditoriaDay(day) {
-            activeAuditoriaDay = day;
-            renderAuditoriaView();
-        }
-
+        // Métodos de Controle da Aba de Auditoria Operacional
         function adjustTime(eventId, deltaMinutes) {
             const ev = calendarEvents.find(e => e.id === eventId);
             if(!ev) return;
             
-            // Se o estado era pendente, inicializa o real com a estimativa planejada antes do ajuste
-            if(ev.status === 'pending') {
-                ev.realMinutes = ev.plannedMinutes;
-            }
-            
+            if(ev.status === 'pending') ev.realMinutes = ev.plannedMinutes;
             ev.realMinutes = Math.max(0, ev.realMinutes + deltaMinutes);
             ev.status = 'altered';
             
@@ -335,17 +768,15 @@
         function validateEvent(eventId) {
             const ev = calendarEvents.find(e => e.id === eventId);
             if(!ev) return;
-            
             ev.realMinutes = ev.plannedMinutes;
             ev.status = 'validated';
-            
             saveStateToStorage();
             recalculateAndSyncUI();
         }
 
         function validateAllAsPlanned() {
             calendarEvents.forEach(ev => {
-                if(ev.day === activeAuditoriaDay && ev.status === 'pending') {
+                if(ev.date === agendaSelectedDate && ev.status === 'pending') {
                     ev.realMinutes = ev.plannedMinutes;
                     ev.status = 'validated';
                 }
@@ -354,15 +785,25 @@
             recalculateAndSyncUI();
         }
 
-        // Motor Analítico de Cálculo de Métricas e Sincronização de UI
+        // Helpers Avançados de Conversão de Tempo para a Engine de Renderização
+        function timeStringToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return (h * 60) + m;
+        }
+
+        function minutesToTimeString(totalMinutes) {
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        // Sincronização Geral de Estado e Interface por Fluxos
         function recalculateAndSyncUI() {
-            // Renderizações por aba específica dependendo do contexto visível
+            renderDashboardView();
             renderKPIView();
             renderAgendaView();
             renderAuditoriaView();
-            renderDashboardView();
 
-            // Computação da Eficiência Geral no Header (Real / Planejado Geral)
             let totalPlannedMin = 0;
             let totalRealMin = 0;
 
@@ -372,22 +813,17 @@
             });
 
             const efficiency = totalPlannedMin > 0 ? Math.round((totalRealMin / totalPlannedMin) * 100) : 0;
-            document.getElementById('header-efficiency').innerText = `${efficiency}% Efficient`;
+            document.getElementById('header-efficiency').innerText = `${efficiency}% Eficiência`;
             
-            // Força remontagem estrutural dos ícones dinâmicos do Lucide
             lucide.createIcons();
         }
 
-        // Sub-Renderizador: Dashboard Analítico
         function renderDashboardView() {
             let totalPlannedMin = 0;
             let totalRealMin = 0;
-            
-            // Inicializa acumuladores analíticos indexados por ID de KPI
             const stats = {};
-            kpis.forEach(k => {
-                stats[k.id] = { planned: 0, real: 0 };
-            });
+            
+            kpis.forEach(k => stats[k.id] = { planned: 0, real: 0 });
 
             calendarEvents.forEach(ev => {
                 totalPlannedMin += ev.plannedMinutes;
@@ -403,7 +839,7 @@
 
             const chartContainer = document.getElementById('dashboard-kpi-charts');
             if(kpis.length === 0) {
-                chartContainer.innerHTML = `<p class="text-xs text-slate-500 italic py-2 text-center">Nenhum dado analítico disponível para computação.</p>`;
+                chartContainer.innerHTML = `<p class="text-[11px] text-slate-500 italic py-2 text-center">Nenhum indicador parametrizado para análise estrutural.</p>`;
                 return;
             }
 
@@ -411,22 +847,20 @@
                 const kpiStat = stats[k.id] || { planned: 0, real: 0 };
                 const realHours = kpiStat.real / 60;
                 const targetHours = k.target;
-                
-                // Cálculo de preenchimento relativo à meta do KPI
                 const progressPercent = targetHours > 0 ? Math.min(100, Math.round((realHours / targetHours) * 100)) : 0;
                 const palette = colorMap[k.color] || colorMap.indigo;
 
                 return `
                     <div class="space-y-1.5">
-                        <div class="flex justify-between text-[11px]">
-                            <span class="font-medium text-slate-300 flex items-center gap-1.5">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="font-bold text-slate-300 flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full ${palette.bg}"></span> ${k.name}
                             </span>
                             <span class="font-mono text-slate-400">
-                                <strong class="${palette.text}">${realHours.toFixed(1)}h</strong> / ${targetHours.toFixed(1)}h meta
+                                <strong class="${palette.text}">${realHours.toFixed(1)}h</strong> / ${targetHours.toFixed(1)}h
                             </span>
                         </div>
-                        <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800 flex">
+                        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800/60 flex">
                             <div class="${palette.bg} h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                         </div>
                     </div>
@@ -434,26 +868,24 @@
             }).join('');
         }
 
-        // Sub-Renderizador: Gerenciamento de KPIs
         function renderKPIView() {
             const listEl = document.getElementById('kpi-list');
             if(kpis.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nenhum indicador parametrizado no LocalStorage.</p>`;
+                listEl.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nenhum indicador ativo.</p>`;
                 return;
             }
-
             listEl.innerHTML = kpis.map(k => {
                 const palette = colorMap[k.color] || colorMap.indigo;
                 return `
-                    <div class="bg-slate-800/20 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full ${palette.bg} shadow-sm"></span>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full ${palette.bg}"></span>
                             <div>
-                                <h4 class="text-xs font-semibold text-slate-200">${k.name}</h4>
-                                <p class="text-[10px] text-slate-400 font-mono">Meta: ${k.target}h/semana</p>
+                                <h4 class="text-xs font-bold text-slate-200">${k.name}</h4>
+                                <p class="text-[9px] text-slate-500 font-mono mt-0.5">Meta Semanal: ${k.target}h</p>
                             </div>
                         </div>
-                        <button onclick="window.deleteKPI('${k.id}')" class="p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-rose-400 transition">
+                        <button onclick="window.deleteKPI('${k.id}')" class="p-1.5 hover:bg-slate-900 rounded-lg text-slate-500 hover:text-rose-400 transition-all">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
@@ -461,63 +893,15 @@
             }).join('');
         }
 
-        // Sub-Renderizador: Criação e Listagem da Grade Horária (Agenda)
-        function renderAgendaView() {
-            const listEl = document.getElementById('agenda-list');
-            const filterDay = document.getElementById('agenda-filter-day').value;
-
-            // Filtra os eventos de acordo com o dia selecionado
-            const filteredEvents = calendarEvents.filter(ev => filterDay === 'Todos' || ev.day === filterDay);
-
-            if(filteredEvents.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nenhum bloco de tempo alocado para este filtro.</p>`;
-                return;
-            }
-
-            listEl.innerHTML = filteredEvents.map(ev => {
-                const linkedKpi = kpis.find(k => k.id === ev.manualKpiId);
-                const kpiName = linkedKpi ? linkedKpi.name : 'Sem KPI';
-                const palette = linkedKpi ? colorMap[linkedKpi.color] : colorMap.indigo;
-
-                return `
-                    <div class="p-2.5 rounded-xl border ${palette.border} ${palette.fill} flex justify-between items-center">
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${palette.bg} text-slate-950">${ev.day}</span>
-                                <h4 class="text-xs font-bold text-slate-200">${ev.title}</h4>
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                                <i data-lucide="tag" class="w-2.5 h-2.5"></i> ${kpiName} • <span class="font-mono text-slate-300">${ev.plannedMinutes} min</span>
-                            </p>
-                        </div>
-                        <button onclick="window.deleteEvent('${ev.id}')" class="p-1.5 hover:bg-slate-800/80 rounded-lg text-slate-500 hover:text-rose-400 transition">
-                            <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Sub-Renderizador: Validação e Computação Diária (Auditoria)
         function renderAuditoriaView() {
-            // Atualiza estado visual do seletor de dias da semana
-            ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'].forEach(d => {
-                const btn = document.getElementById(`day-btn-${d}`);
-                if(d === activeAuditoriaDay) {
-                    btn.className = "flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-slate-800 text-indigo-400 border border-slate-700/50 shadow";
-                } else {
-                    btn.className = "flex-1 py-1.5 text-[11px] font-medium rounded-lg text-slate-400 hover:text-slate-200 transition";
-                }
-            });
-
             const listEl = document.getElementById('auditoria-list');
-            const dayEvents = calendarEvents.filter(ev => ev.day === activeAuditoriaDay);
+            const dayEvents = calendarEvents.filter(ev => ev.date === agendaSelectedDate);
 
             if(dayEvents.length === 0) {
                 listEl.innerHTML = `
-                    <div class="text-center py-8 px-4 border border-dashed border-slate-800 rounded-xl">
-                        <i data-lucide="calendar-days" class="w-6 h-6 text-slate-600 mx-auto mb-2"></i>
-                        <p class="text-xs text-slate-500 italic">Nenhum compromisso planejado para esta data na aba Agenda.</p>
+                    <div class="text-center py-8 px-4 border border-dashed border-slate-800 rounded-2xl">
+                        <i data-lucide="shield-alert" class="w-5 h-5 text-slate-600 mx-auto mb-1.5"></i>
+                        <p class="text-[11px] text-slate-500 italic">Nenhum bloco de tempo agendado para auditoria na data selecionada.</p>
                     </div>`;
                 return;
             }
@@ -526,39 +910,34 @@
                 const linkedKpi = kpis.find(k => k.id === ev.manualKpiId);
                 const palette = linkedKpi ? colorMap[linkedKpi.color] : colorMap.indigo;
                 
-                // Determinação dinâmica do status de conformidade
-                let statusBadge = '';
+                let badge = '';
                 if(ev.status === 'validated') {
-                    statusBadge = `<span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="check" class="w-2.5 h-2.5"></i> Ok</span>`;
+                    badge = `<span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-900/60 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5">Validado</span>`;
                 } else if(ev.status === 'altered') {
-                    statusBadge = `<span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-900 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="alert-circle" class="w-2.5 h-2.5"></i> Auditado</span>`;
+                    badge = `<span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-900/60 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5">Modificado</span>`;
                 } else {
-                    statusBadge = `<span class="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><i data-lucide="clock" class="w-2.5 h-2.5"></i> Pendente</span>`;
+                    badge = `<span class="text-[9px] bg-slate-950 text-slate-500 border border-slate-800 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5">Pendente</span>`;
                 }
 
-                const currentDisplayMinutes = ev.status === 'pending' ? ev.plannedMinutes : ev.realMinutes;
+                const currentMinutesDisplay = ev.status === 'pending' ? ev.plannedMinutes : ev.realMinutes;
 
                 return `
-                    <div class="bg-slate-900 border border-slate-800/80 rounded-xl p-3 flex flex-col justify-between gap-3 shadow-inner">
+                    <div class="bg-slate-950 border border-slate-850 rounded-2xl p-3 flex flex-col gap-3">
                         <div class="flex justify-between items-start">
                             <div>
                                 <h4 class="text-xs font-bold text-slate-200">${ev.title}</h4>
-                                <div class="flex items-center gap-1.5 mt-1">
-                                    <span class="w-1.5 h-1.5 rounded-full ${palette.bg}"></span>
-                                    <p class="text-[10px] text-slate-400">Planejado: <span class="font-mono text-slate-300">${ev.plannedMinutes}m</span></p>
-                                </div>
+                                <p class="text-[9px] text-slate-500 font-mono mt-0.5">${ev.startTime} às ${ev.endTime} (${ev.plannedMinutes}m planejado)</p>
                             </div>
-                            ${statusBadge}
+                            ${badge}
                         </div>
-
-                        <div class="flex items-center justify-between bg-slate-950/60 p-1.5 rounded-lg border border-slate-800/60">
-                            <span class="text-[10px] font-medium text-slate-400 pl-1">Tempo Real:</span>
+                        <div class="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-xl border border-slate-800/60">
+                            <span class="text-[10px] font-bold text-slate-400 pl-1">Tempo Executado:</span>
                             <div class="flex items-center gap-1">
-                                <button onclick="window.adjustTime('${ev.id}', -15)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-md text-xs font-bold transition text-slate-300">-15</button>
-                                <span class="w-16 text-center font-mono text-xs font-bold text-indigo-400">${currentDisplayMinutes}m</span>
-                                <button onclick="window.adjustTime('${ev.id}', 15)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-md text-xs font-bold transition text-slate-300">+15</button>
-                                <button onclick="window.validateEvent('${ev.id}')" class="w-7 h-7 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-900/50 rounded-md transition text-indigo-400 flex items-center justify-center ml-1" title="Validar Tempo Planejado">
-                                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                <button onclick="window.adjustTime('${ev.id}', -15)" class="w-7 h-7 bg-slate-950 hover:bg-slate-800 rounded-lg text-[10px] font-mono font-bold transition-all border border-slate-800 text-slate-300">-15m</button>
+                                <span class="w-14 text-center font-mono text-xs font-bold text-indigo-400">${currentMinutesDisplay}m</span>
+                                <button onclick="window.adjustTime('${ev.id}', 15)" class="w-7 h-7 bg-slate-950 hover:bg-slate-800 rounded-lg text-[10px] font-mono font-bold transition-all border border-slate-800 text-slate-300">+15m</button>
+                                <button onclick="window.validateEvent('${ev.id}')" class="w-7 h-7 bg-indigo-950/60 hover:bg-indigo-900 rounded-lg text-indigo-400 border border-indigo-900/40 flex items-center justify-center ml-1 transition-all">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </div>
@@ -567,20 +946,21 @@
             }).join('');
         }
 
-        // Encapsulamento Seguro de Escopo Global para Vinculação no HTML
+        // Exportação Segura das Rotinas Operacionais para Vinculação Direta com o DOM
         window.switchTab = switchTab;
+        window.setAgendaViewMode = setAgendaViewMode;
         window.handleCreateKPI = handleCreateKPI;
         window.deleteKPI = deleteKPI;
-        window.handleCreateEvent = handleCreateEvent;
-        window.deleteEvent = deleteEvent;
-        window.setAuditoriaDay = setAuditoriaDay;
+        window.saveDrawnEvent = saveDrawnEvent;
+        window.closeEventModal = closeEventModal;
         window.adjustTime = adjustTime;
         window.validateEvent = validateEvent;
         window.validateAllAsPlanned = validateAllAsPlanned;
-        window.renderAgendaView = renderAgendaView;
 
         // Inicialização do Lifecycle da Aplicação
         window.addEventListener('DOMContentLoaded', () => {
+            buildHorizonNavigator();
+            buildTimeAxisLabels();
             recalculateAndSyncUI();
         });
     </script>
