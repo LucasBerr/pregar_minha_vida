@@ -231,23 +231,45 @@
         // Navegador entre Abas
         function switchTab(tabId) {
             activeTab = tabId;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            // 1. Esconde todos os conteúdos e mostra o selecionado
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none'; // Garante que o display seja resetado
+            });
+            
+            const activeSection = document.getElementById(`tab-${tabId}`);
+            if (activeSection) {
+                activeSection.classList.add('active');
+                activeSection.style.display = 'flex'; 
+            }
 
-            // Atualização Visual do Menu Inferior
-            ['dashboard', 'kpis', 'agenda', 'auditoria'].forEach(t => {
+            // 2. Atualização Visual do Menu Inferior (Cores e Escala)
+            const tabs = ['dashboard', 'kpis', 'agenda', 'auditoria'];
+            tabs.forEach(t => {
                 const navBtn = document.getElementById(`nav-${t}`);
-                if(t === tabId) {
-                    navBtn.className = "flex flex-col items-center gap-1 text-indigo-500 transition-all scale-105";
-                } else {
-                    navBtn.className = "flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-all";
+                if (navBtn) {
+                    if (t === tabId) {
+                        navBtn.classList.remove('text-slate-500');
+                        navBtn.classList.add('text-indigo-500', 'scale-105');
+                    } else {
+                        navBtn.classList.add('text-slate-500');
+                        navBtn.classList.remove('text-indigo-500', 'scale-105');
+                    }
                 }
             });
 
-            const titles = { dashboard: "Dashboard Operacional", kpis: "Indicadores de Alta Performance", agenda: "Time-Blocked Calendar System", auditoria: "Auditoria Operacional Diária" };
-            document.getElementById('current-view-title').innerText = titles[tabId];
+            // 3. Atualiza o título do Header
+            const titles = { 
+                dashboard: "Dashboard Operacional", 
+                kpis: "Indicadores de Alta Performance", 
+                agenda: "Time-Blocked Calendar System", 
+                auditoria: "Auditoria Operacional Diária" 
+            };
+            document.getElementById('current-view-title').innerText = titles[tabId] || "SyncLife Core";
 
-            if(tabId === 'agenda') {
+            // 4. Lógicas específicas para a aba Agenda
+            if (tabId === 'agenda') {
                 setTimeout(() => {
                     centerHorizonToSelectedDay();
                     scrollToVisibleViewport();
